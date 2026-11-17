@@ -125,6 +125,12 @@
   .sebrae-logo{width:172px;height:93px;display:block;margin:28px auto 0}
   .sebrae-logo svg{width:100%;height:100%;display:block}
   body:not(.light) .sebrae-logo{filter:brightness(0) invert(1);opacity:.92}
+  /* marca discreta dentro do rodapé de fontes */
+  .foot-logo{display:inline-block;width:52px;height:28px;vertical-align:-8px;margin-right:10px;opacity:.55}
+  .foot-logo svg{width:100%;height:100%;display:block}
+  body:not(.light) .foot-logo{filter:brightness(0) invert(1);opacity:.5}
+  @media (max-width:720px){.foot-logo{width:44px;height:24px;vertical-align:-6px;margin-right:8px}}
+
   .brandmini .sebrae-logo-sm{width:58px;height:31px;display:inline-block;margin-right:2px}
   .brandmini .sebrae-logo-sm svg{width:100%;height:100%;display:block}
   body:not(.light) .brandmini .sebrae-logo-sm{filter:brightness(0) invert(1);opacity:.85}
@@ -668,12 +674,22 @@ const VOCACOES = [
 const view = document.getElementById('view');
 const crumb = document.getElementById('crumb');
 let stack = [];
+let SEBRAE_SVG = '';
 
 const fmt = n => n.toLocaleString('pt-BR');
 const nota = n => n.toFixed(1).replace('.',',');
 
 function screen(id, html){
   view.innerHTML = `<div class="screen" id="${id}">${html}</div>`;
+  // toda tela que tem rodapé de fontes ganha a marca discreta do Sebrae nele
+  const foot = view.querySelector('.screen .foot');
+  if(id !== 'home' && foot && SEBRAE_SVG && !foot.querySelector('.foot-logo')){
+    const span = document.createElement('span');
+    span.className = 'foot-logo';
+    span.setAttribute('aria-label','Realização: Sebrae');
+    span.innerHTML = SEBRAE_SVG;
+    foot.insertBefore(span, foot.firstChild);
+  }
   requestAnimationFrame(()=>{
     const el = view.firstElementChild;
     el.classList.add('on');
@@ -709,6 +725,8 @@ function attract(){
 </div>
     <div class="hint">Escritório Regional Sebrae Inhamuns · Execução técnica Lumiere</div>
   </div>`;
+  const src = view.querySelector('.sebrae-logo svg');
+  if(src) SEBRAE_SVG = src.outerHTML;
 }
 
 /* ---------- HOME ---------- */
