@@ -246,6 +246,25 @@
 
   /* ---------- CTA grid ---------- */
   .ctagrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+  /* barra própria de empresas, separada dos atalhos */
+  .cta-emp{display:flex;align-items:center;justify-content:space-between;gap:18px;
+    padding:18px 22px;border-radius:20px;cursor:pointer;
+    border:1px solid rgba(232,163,61,.55);
+    background:linear-gradient(120deg,rgba(232,163,61,.22),rgba(232,163,61,.05))}
+  .cta-emp:hover{border-color:var(--honey)}
+  .cta-emp .t{min-width:0}
+  .cta-emp .t b{display:block;font-size:19px;font-weight:800;letter-spacing:-.01em}
+  .cta-emp .t span{display:block;font-size:13.5px;color:var(--muted);margin-top:5px;line-height:1.35}
+  .cta-emp .kpi-emp{flex:0 0 auto;font-size:30px;font-weight:800;letter-spacing:-.02em;color:var(--honey2);line-height:1;text-align:right}
+  .cta-emp .kpi-emp small{display:block;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--muted);font-weight:600;margin-top:7px;text-align:right}
+  @media (max-width:720px){
+    .cta-emp{padding:14px 16px;gap:12px}
+    .cta-emp .t b{font-size:16.5px}
+    .cta-emp .t span{font-size:12.5px}
+    .cta-emp .kpi-emp{font-size:23px}
+  }
   .cta.sm{padding:14px 16px;gap:10px}
   .cta.sm b{font-size:15px;line-height:1.2;display:block}
   .cta.sm span{font-size:12px;margin-top:4px}
@@ -428,6 +447,13 @@
   }
   /* totem/tablet em pé: retrato real */
   @media (orientation:portrait){
+    .cta-emp{padding:14px 18px}
+    .cta-emp .t b{font-size:17px}
+    .cta-emp .t span{font-size:12.5px}
+    .cta-emp .kpi-emp{font-size:26px}
+    .munis{gap:9px;margin-top:10px}
+    .muni{min-height:82px;padding:12px 14px}
+    .card-hero{padding:20px 22px}
     .grid-home{grid-template-columns:1fr;height:auto}
     .munis{grid-template-columns:repeat(2,1fr)}
     .municard,.pot,.two{grid-template-columns:1fr}
@@ -752,6 +778,14 @@ function home(){
           <div class="foot" style="border:none;padding-top:16px">${TERR.pesoCE}</div>
         </div>
 
+        <div class="cta-emp" onclick="empresas()">
+          <div class="t">
+            <b>Empresas do território</b>
+            <span>Quantas são, de que porte e em que setor — o número que o Sebrae acompanha de perto</span>
+          </div>
+          <div class="kpi-emp">${fmt(EMPRESAS.total)}<small>empresas</small></div>
+        </div>
+
         <div class="card">
           <h2>Os sete municípios</h2>
           <div class="cap">Toque em um município para ver os números e o diagnóstico local</div>
@@ -778,10 +812,6 @@ function home(){
         </div>
 
         <div class="ctagrid">
-          <div class="cta sm" onclick="empresas()" style="grid-column:1/-1;border-color:rgba(232,163,61,.55);background:linear-gradient(120deg,rgba(232,163,61,.2),rgba(232,163,61,.05))">
-            <div><b>Empresas do território</b><span>6.360 empresas formais · por porte, setor e município</span></div>
-            <div class="arrow" style="color:var(--honey2)">→</div>
-          </div>
           <div class="cta sm" onclick="prior()" style="border-color:rgba(232,163,61,.55);background:linear-gradient(120deg,rgba(232,163,61,.18),rgba(232,163,61,.04))">
             <div><b>O que fazer primeiro</b><span>As prioridades do território</span></div>
             <div class="arrow" style="color:var(--honey2)">→</div>
