@@ -299,6 +299,7 @@
   .donut-hole b{font-size:clamp(20px,2vw,28px);font-weight:800;letter-spacing:-.02em}
   .donut-hole span{font-size:11.5px;color:var(--muted);margin-top:2px}
   .dlegend{display:grid;gap:9px;margin-top:16px;width:100%;text-align:left}
+  .delta{margin-top:12px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--green);font-weight:700}
   .dl-item{display:grid;grid-template-columns:14px 1fr auto;align-items:center;gap:10px;font-size:14px;color:var(--t2)}
   .dl-item i{width:12px;height:12px;border-radius:4px;display:inline-block}
   .dl-item b{font-weight:800;color:var(--ink);font-size:14.5px}
@@ -545,7 +546,7 @@ const TERR = {
   idh:"0,600",
   urbano:"53%",
   rural:"47%",
-  empresas:"6.360",
+  empresas:"6.456",
   empregos:"17.249",
   salario:"R$ 1.679",
   salarioCE:"R$ 2.672",
@@ -589,31 +590,31 @@ const DIMS = [
 ];
 
 const MUNIS = [
-  {nome:"Tauá", empresas:3500, saneamento:"26,1%", analfabetismo:"21,6%", pop:"61.227", pib:"R$ 15.260", idhm:"0,633", isdel:"0,289", urbano:"64%", area:"4.010,6 km²", dens:"15,3", abertura:"1 dia e 1h",
+  {nome:"Tauá", empresas:3548, saneamento:"26,1%", analfabetismo:"21,6%", pop:"61.227", pib:"R$ 15.260", idhm:"0,633", isdel:"0,289", urbano:"64%", area:"4.010,6 km²", dens:"15,3", abertura:"1 dia e 1h",
    potencial:"Maior economia regional, IFCE, Sebrae Inhamuns e energia solar consolidam Tauá como polo de serviços, qualificação e inovação.",
    desafio:"Os postos formais representam 12,6% da população — há espaço para ampliar empregos privados e levar oportunidades aos distritos.",
    tags:["Polo regional","Energia solar","IFCE","Sebrae"]},
-  {nome:"Parambu", empresas:1003, saneamento:"30,1%", analfabetismo:"25,9%", pop:"31.445", pib:"R$ 11.114", idhm:"0,570", isdel:"0,197", urbano:"53%", area:"2.313,9 km²", dens:"13,6", abertura:"1 dia",
+  {nome:"Parambu", empresas:1008, saneamento:"30,1%", analfabetismo:"25,9%", pop:"31.445", pib:"R$ 11.114", idhm:"0,570", isdel:"0,197", urbano:"53%", area:"2.313,9 km²", dens:"13,6", abertura:"1 dia",
    potencial:"BR-020, CE-277 e CE-279 e os nove distritos posicionam Parambu como polo logístico e comercial intrarregional.",
    desafio:"População rural dispersa em território extenso exige atendimento descentralizado e melhor conexão entre distritos e a sede.",
    tags:["BR-020","9 distritos","Polo comercial"]},
-  {nome:"Quiterianópolis", empresas:620, saneamento:"16,0%", analfabetismo:"25,5%", pop:"20.213", pib:"R$ 12.363", idhm:"0,594", isdel:"0,180", urbano:"36%", area:"1.022,9 km²", dens:"19,4", abertura:"1 dia e 4h",
+  {nome:"Quiterianópolis", empresas:636, saneamento:"16,0%", analfabetismo:"25,5%", pop:"20.213", pib:"R$ 12.363", idhm:"0,594", isdel:"0,180", urbano:"36%", area:"1.022,9 km²", dens:"19,4", abertura:"1 dia e 4h",
    potencial:"A CE-351, a Lei Municipal de Inovação e o EJA Empreendedor apoiam novos negócios e a integração com Crateús e o Piauí.",
    desafio:"Com 64% da população no campo e saneamento ainda limitado, precisa ampliar infraestrutura e acesso a serviços.",
    tags:["Lei de inovação","CE-351","EJA empreendedor"]},
-  {nome:"Aiuaba", empresas:404, saneamento:"15,9%", analfabetismo:"28,3%", pop:"14.076", pib:"R$ 12.012", idhm:"0,569", isdel:"0,169", urbano:"40%", area:"2.438,6 km²", dens:"5,8", abertura:"2 dias e 22h",
+  {nome:"Aiuaba", empresas:411, saneamento:"15,9%", analfabetismo:"28,3%", pop:"14.076", pib:"R$ 12.012", idhm:"0,569", isdel:"0,169", urbano:"40%", area:"2.438,6 km²", dens:"5,8", abertura:"2 dias e 22h",
    potencial:"A Estação Ecológica de Aiuaba abre oportunidades em turismo de natureza, educação ambiental e bioeconomia da Caatinga.",
    desafio:"Território amplo e densidade de 5,8 hab/km² elevam o custo de acesso a serviços, conectividade e apoio aos negócios.",
    tags:["Estação Ecológica","Apicultura","Turismo de natureza"]},
-  {nome:"Catarina", empresas:315, saneamento:"30,0%", analfabetismo:"26,3%", pop:"10.243", pib:"R$ 14.835", idhm:"0,618", isdel:"0,201", urbano:"57%", area:"488,2 km²", dens:"21,0", abertura:"1 dia e 23h",
+  {nome:"Catarina", empresas:321, saneamento:"30,0%", analfabetismo:"26,3%", pop:"10.243", pib:"R$ 14.835", idhm:"0,618", isdel:"0,201", urbano:"57%", area:"488,2 km²", dens:"21,0", abertura:"1 dia e 23h",
    potencial:"A maior pluviometria do território favorece a diversificação agrícola, a cadeia do mel e a agregação de valor no campo.",
    desafio:"Analfabetismo de 26,3% limita a adoção de tecnologias e exige formação acessível para produtores e pequenos negócios.",
    tags:["Maior pluviometria","Cadeia do mel","Saneamento"]},
-  {nome:"Arneiroz", empresas:277, saneamento:"17,4%", analfabetismo:"24,1%", pop:"7.429", pib:"R$ 11.856", idhm:"0,618", isdel:"0,189", urbano:"58%", area:"1.068,4 km²", dens:"7,0", abertura:"23h",
+  {nome:"Arneiroz", empresas:282, saneamento:"17,4%", analfabetismo:"24,1%", pop:"7.429", pib:"R$ 11.856", idhm:"0,618", isdel:"0,189", urbano:"58%", area:"1.068,4 km²", dens:"7,0", abertura:"23h",
    potencial:"A CE-277 e a presença expressiva de moradores no campo favorecem a pecuária familiar e serviços ligados à produção rural.",
    desafio:"Baixa densidade e 678 postos formais mostram a necessidade de ampliar qualificação, formalização e geração de renda.",
    tags:["CE-277","Pecuária familiar","678 postos formais"]},
-  {nome:"Antonina do Norte", empresas:241, saneamento:"47,0%", analfabetismo:"26,7%", pop:"7.245", pib:"R$ 13.967", idhm:"0,599", isdel:"0,214", urbano:"76%", area:"259,7 km²", dens:"27,9", abertura:"22h",
+  {nome:"Antonina do Norte", empresas:250, saneamento:"47,0%", analfabetismo:"26,7%", pop:"7.245", pib:"R$ 13.967", idhm:"0,599", isdel:"0,214", urbano:"76%", area:"259,7 km²", dens:"27,9", abertura:"22h",
    potencial:"A localização estratégica às margens da rodovia é um diferencial competitivo para o município.",
    desafio:"Mercado local pequeno e dependência funcional de Assaré reforçam a necessidade de integração regional e diversificação produtiva.",
    tags:["Mais rápido p/ abrir","Maior densidade","Rodovia"]}
@@ -668,8 +669,14 @@ const VOZES = {
 };
 
 const EMPRESAS = {
-  total: 6360,
-  fonte: "Mapa de Empresas — Governo Federal/Redesim, citado na apresentação TE Inhamuns (jul/2026)",
+  total: 6456,
+  atualizado: "02/10/2026",
+  fonte: "DataSebrae / Receita Federal — atualização de 02/10/2026",
+  anterior: 6360,
+  dataAnterior: "jul/2026",
+  // perfil por porte e por setor vem do diagnóstico TE (base de jul/2026); aqui as
+  // participações são aplicadas ao total atualizado — por isso o "≈" nos absolutos.
+  basePerfil: "perfil por porte e setor: diagnóstico TE Inhamuns, base de jul/2026",
   porte: [
     ["MEI", 57.83, "#E8A33D"],
     ["ME — microempresa", 35.99, "#6FB7A6"],
@@ -677,11 +684,11 @@ const EMPRESAS = {
     ["Médias e grandes", 2.81, "#D9694F"]
   ],
   setor: [
-    ["Comércio", 3422, 53.8, "#E8A33D"],
-    ["Serviços", 2247, 35.3, "#6FB7A6"],
-    ["Indústria", 397, 6.2, "#8E7CC3"],
-    ["Construção civil", 249, 3.9, "#C9A227"],
-    ["Agropecuária", 45, 0.7, "#D9694F"]
+    ["Comércio", 53.8, "#E8A33D"],
+    ["Serviços", 35.3, "#6FB7A6"],
+    ["Indústria", 6.2, "#8E7CC3"],
+    ["Construção civil", 3.9, "#C9A227"],
+    ["Agropecuária", 0.7, "#D9694F"]
   ]
 };
 
@@ -690,7 +697,7 @@ const VOCACOES = [
   ["Mel de Aroeira","Indicação de Procedência concedida pelo INPI em 2025 — a vocação mais distintiva do território."],
   ["Energia solar","Tauá recebeu a primeira usina solar comercial conectada ao SIN do país."],
   ["Turismo de natureza","Estação Ecológica de Aiuaba, com 11,7 mil hectares de Caatinga protegida, e cultura viva sertaneja."],
-  ["Comércio e serviços","Mais de 6 mil empresas, 96% delas MEI, micro ou pequena."],
+  ["Comércio e serviços","Mais de 6,4 mil empresas, 97% delas MEI, micro ou pequena."],
   ["Agroindustrialização","Mel, carne, leite e recursos da Caatinga podem virar produto com marca e mercado."]
 ];
 
@@ -771,7 +778,7 @@ function home(){
           </div>
           <div class="kpis">
             <div class="kpi"><b>${TERR.populacao}</b><span>habitantes (Censo 2022)</span></div>
-            <div class="kpi"><b>${TERR.empresas}</b><span>empresas formais · 96% pequenas</span></div>
+            <div class="kpi"><b>${TERR.empresas}</b><span>empresas formais · 97% pequenas</span></div>
             <div class="kpi"><b>${TERR.idh}</b><span>IDH médio do território</span></div>
             <div class="kpi"><b>${TERR.empregos}</b><span>postos formais · 11,4% da população</span></div>
           </div>
@@ -926,14 +933,17 @@ function donutGradient(porte){
 }
 function empresas(){
   crumb.innerHTML = `<b>Território ${TERR.nome}</b> — empresas`;
-  const maxSetor = Math.max(...EMPRESAS.setor.map(s=>s[1]));
+  const maxPct = Math.max(...EMPRESAS.setor.map(s=>s[1]));
   const porMuni = MUNIS.slice().sort((a,b)=>b.empresas-a.empresas);
   const maxMuni = porMuni[0].empresas;
+  const shareTaua = Math.round(porMuni[0].empresas / EMPRESAS.total * 100);
+  const variacao = EMPRESAS.total - EMPRESAS.anterior;
+  const abs = p => Math.round(EMPRESAS.total * p / 100);
   screen('empresas', `
     <div class="head">
       <div><h1>Empresas do território</h1>
       <div class="meta">O número que o Sebrae acompanha de perto: quantas empresas existem, de que porte e em que setor — base para medir formalização e geração de renda.</div></div>
-      <div class="pill">${fmt(EMPRESAS.total)} empresas formais</div>
+      <div class="pill">${fmt(EMPRESAS.total)} empresas · ${EMPRESAS.atualizado}</div>
     </div>
     <div class="two two-emp" style="align-items:start">
       <div class="card" style="display:flex;flex-direction:column;align-items:center;text-align:center">
@@ -944,21 +954,22 @@ function empresas(){
         <div class="dlegend">
           ${EMPRESAS.porte.map(([n,v,cor])=>`<div class="dl-item"><i style="background:${cor}"></i>${n}<b>${v.toFixed(2).replace('.',',')}%</b></div>`).join('')}
         </div>
+        <div class="delta">+${fmt(variacao)} empresas desde ${EMPRESAS.dataAnterior}</div>
       </div>
       <div class="card">
         <h2>Por setor</h2>
-        <div class="cap">Número de empresas por atividade econômica</div>
+        <div class="cap">Participação de cada atividade no total de empresas</div>
         <div class="bars" style="margin-top:14px">
-          ${EMPRESAS.setor.map(([n,v,pct,cor])=>`<div class="dbar">
-            <div><div class="nm">${n}</div><div class="t"><div class="f" style="width:${(v/maxSetor*100).toFixed(1)}%;background:linear-gradient(90deg,${cor},${cor}bb)"></div></div></div>
-            <div class="v">${fmt(v)}<small style="display:block;font-size:11px;color:var(--muted);font-weight:600">${pct.toFixed(1).replace('.',',')}%</small></div>
+          ${EMPRESAS.setor.map(([n,pct,cor])=>`<div class="dbar">
+            <div><div class="nm">${n}</div><div class="t"><div class="f" style="width:${(pct/maxPct*100).toFixed(1)}%;background:linear-gradient(90deg,${cor},${cor}bb)"></div></div></div>
+            <div class="v">${pct.toFixed(1).replace('.',',')}%<small style="display:block;font-size:11px;color:var(--muted);font-weight:600">≈ ${fmt(abs(pct))}</small></div>
           </div>`).join('')}
         </div>
       </div>
     </div>
     <div class="card" style="margin-top:16px">
       <h2>Por município</h2>
-      <div class="cap">Tauá concentra 55% das empresas do território · toque para abrir a ficha</div>
+      <div class="cap">Tauá concentra ${shareTaua}% das empresas do território · toque para abrir a ficha</div>
       <div class="mlist" style="margin-top:14px">
         ${porMuni.map(m=>`<div class="mrow mrow-emp" onclick="muni('${m.nome}')">
           <b>${m.nome}</b>
@@ -968,7 +979,7 @@ function empresas(){
         </div>`).join('')}
       </div>
     </div>
-    <div class="foot">Fonte: ${EMPRESAS.fonte}. Cerca de 97% das empresas do território são MEI, microempresa ou pequeno porte — base econômica pequena, pulverizada entre os sete municípios.</div>
+    <div class="foot">Fonte: ${EMPRESAS.fonte}. ${EMPRESAS.basePerfil}. Cerca de 97% das empresas são MEI, microempresa ou pequeno porte — base pequena, pulverizada entre os sete municípios.</div>
   `);
   push('empresas');
 }
