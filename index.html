@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Território Inhamuns — Painel Interativo</title>
+<style>
+  :root{
+    --bg:#0A1210;
+    --bg2:#0F1B18;
+    --panel:#13221E;
+    --panel2:#172A25;
+    --line:rgba(244,239,230,.12);
+    --line2:rgba(244,239,230,.22);
+    --ink:#F4EFE6;
+    --muted:#9DB0A9;
+    --honey:#E8A33D;
+    --honey2:#F6C766;
+    --green:#6FB7A6;
+    --red:#D9694F;
+    --t2:#DCD5C8;
+    --t3:#E7E0D3;
+    --bad-ink:#F0A28C;
+    --ov3:rgba(244,239,230,.035); --ov4:rgba(244,239,230,.05);
+    --ov5:rgba(244,239,230,.06); --ov6:rgba(244,239,230,.075);
+    --ov9:rgba(244,239,230,.10); --ov10:rgba(244,239,230,.13);
+    --barbg1:rgba(10,18,16,.96); --barbg2:rgba(10,18,16,.72);
+    --r:22px;
+  }
+  body.light{
+    --bg:#F5F0E6; --bg2:#EFE7D8; --panel:#FFFCF6; --panel2:#F8F2E6;
+    --line:rgba(18,32,28,.13); --line2:rgba(18,32,28,.26);
+    --ink:#12201C; --muted:#5B6B64;
+    --honey:#A9691A; --honey2:#8A5711; --green:#2C7563; --red:#B0482F;
+    --t2:#3B4A44; --t3:#26332E; --bad-ink:#A63E27;
+    --barbg1:rgba(245,240,230,.97); --barbg2:rgba(245,240,230,.80);
+    --ov3:rgba(18,32,28,.035); --ov4:rgba(18,32,28,.05);
+    --ov5:rgba(18,32,28,.06); --ov6:rgba(18,32,28,.07);
+    --ov9:rgba(18,32,28,.10); --ov10:rgba(18,32,28,.13);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    background:
+      radial-gradient(1200px 700px at 78% -10%, rgba(232,163,61,.10), transparent 60%),
+      radial-gradient(900px 600px at 8% 108%, rgba(111,183,166,.09), transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+    overflow:hidden;
+    user-select:none;
+  }
+  #app{height:100vh;display:flex;flex-direction:column;position:relative}
+
+  /* ---------- top bar ---------- */
+  .bar{
+    display:flex;align-items:center;gap:14px;
+    padding:14px 26px;
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,var(--barbg1),var(--barbg2));
+    backdrop-filter:blur(6px);
+    min-height:66px;
+    opacity:0;pointer-events:none;transition:opacity .4s;
+    position:relative;z-index:5;
+  }
+  body.browsing .bar{opacity:1;pointer-events:auto}
+  .back{
+    display:flex;align-items:center;gap:10px;
+    background:var(--panel);border:1px solid var(--line2);
+    color:var(--ink);font-size:17px;font-weight:600;
+    padding:12px 20px;border-radius:999px;cursor:pointer;
+  }
+  .back:active{transform:scale(.97)}
+  .crumb{font-size:17px;color:var(--muted);letter-spacing:.02em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 1 auto}
+  .crumb b{color:var(--ink);font-weight:600}
+  .bar .sp{flex:1}
+  .brandmini{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;flex:0 0 auto;white-space:nowrap}
+  @media (max-width:1280px){.brandmini{display:none}}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--honey);box-shadow:0 0 14px var(--honey)}
+
+  /* ---------- views ---------- */
+  #view{flex:1;overflow:hidden;position:relative}
+  .screen{
+    position:absolute;inset:0;overflow:auto;
+    padding:22px 40px 26px;
+    opacity:0;pointer-events:none;
+    transition:opacity .35s ease, transform .35s ease;
+    transform:translateY(10px);
+  }
+  .screen.on{opacity:1;pointer-events:auto;transform:none}
+  .screen::-webkit-scrollbar{width:0}
+
+  /* ---------- attract ---------- */
+  #attract{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;cursor:pointer;padding:40px;
+  }
+  #attract .kicker{
+    font-size:clamp(13px,1.1vw,17px);letter-spacing:.34em;text-transform:uppercase;
+    color:var(--honey2);margin-bottom:22px;
+  }
+  #attract h1{
+    font-size:clamp(44px,7.2vw,132px);line-height:.94;font-weight:800;letter-spacing:-.03em;
+    margin-bottom:10px;
+  }
+  #attract h1 span{color:var(--honey)}
+  #attract .sub{
+    font-size:clamp(17px,1.5vw,26px);color:var(--muted);max-width:940px;line-height:1.45;margin-top:16px;
+  }
+  .touch{
+    margin-top:34px;display:inline-flex;align-items:center;gap:16px;
+    padding:20px 38px;border-radius:999px;
+    border:1px solid rgba(232,163,61,.5);
+    background:linear-gradient(180deg,rgba(232,163,61,.18),rgba(232,163,61,.06));
+    font-size:clamp(17px,1.5vw,24px);font-weight:700;color:var(--honey2);
+    animation:pulse 2.8s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(232,163,61,.0)}50%{box-shadow:0 0 60px 0 rgba(232,163,61,.22)}}
+  .evento{
+    margin-top:18px;padding:9px 20px;border-radius:999px;
+    border:1px solid rgba(232,163,61,.35);background:rgba(232,163,61,.08);
+    color:var(--honey2);font-size:clamp(12px,1vw,15px);font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  }
+  .hint{margin-top:10px;font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:rgba(157,176,169,.6)}
+  .sebrae-logo{width:172px;height:93px;display:block;margin:28px auto 0}
+  .sebrae-logo svg{width:100%;height:100%;display:block}
+  body:not(.light) .sebrae-logo{filter:brightness(0) invert(1);opacity:.92}
+  .brandmini .sebrae-logo-sm{width:58px;height:31px;display:inline-block;margin-right:2px}
+  .brandmini .sebrae-logo-sm svg{width:100%;height:100%;display:block}
+  body:not(.light) .brandmini .sebrae-logo-sm{filter:brightness(0) invert(1);opacity:.85}
+
+  /* ---------- home ---------- */
+  .grid-home{display:grid;grid-template-columns:1.05fr .95fr;gap:26px;height:100%}
+  .card{
+    background:linear-gradient(180deg,var(--panel),var(--bg2));
+    border:1px solid var(--line);border-radius:var(--r);padding:26px 28px;position:relative;overflow:hidden;
+  }
+  .card h2{font-size:clamp(19px,1.5vw,26px);font-weight:700;letter-spacing:-.01em;margin-bottom:4px}
+  .card .cap{font-size:14px;color:var(--muted);letter-spacing:.02em}
+  .right-col{display:flex;flex-direction:column;gap:26px;min-height:0}
+
+  .score{display:flex;align-items:center;gap:28px;margin-top:14px}
+  .card-hero{flex:1;display:flex;flex-direction:column;justify-content:center}
+  .score .num{font-size:clamp(52px,5.4vw,86px);font-weight:800;letter-spacing:-.04em;line-height:1}
+  .score .num small{font-size:.32em;font-weight:600;color:var(--muted);letter-spacing:0}
+  .score .txt{font-size:15px;color:var(--muted);line-height:1.5;max-width:250px}
+  .badge{
+    display:inline-block;margin-top:10px;padding:8px 16px;border-radius:999px;
+    background:rgba(217,105,79,.14);border:1px solid rgba(217,105,79,.45);
+    color:var(--bad-ink);font-size:14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  }
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:22px}
+  .kpi{background:var(--ov4);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+  .kpi b{display:block;font-size:clamp(19px,1.95vw,30px);font-weight:800;letter-spacing:-.02em}
+  .kpi span{font-size:12.5px;color:var(--muted);line-height:1.35;display:block;margin-top:6px}
+
+  .dims{display:grid;gap:9px;margin-top:16px}
+  .dim{
+    display:grid;grid-template-columns:170px 1fr 62px;align-items:center;gap:14px;
+    padding:11px 14px;border-radius:14px;border:1px solid transparent;cursor:pointer;
+    background:var(--ov3);
+  }
+  .dim:active{transform:scale(.995)}
+  .dim:hover{border-color:var(--line2);background:var(--ov6)}
+  .dim .nm{font-size:15.5px;font-weight:600}
+  .dim .track{height:10px;border-radius:99px;background:var(--ov10);overflow:hidden}
+  .dim .fill{height:100%;border-radius:99px;transition:width .8s cubic-bezier(.2,.8,.2,1)}
+  .dim .vl{font-size:16px;font-weight:800;text-align:right;letter-spacing:-.01em}
+  .dim .vl small{font-size:11px;color:var(--muted);font-weight:600}
+
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:start}
+  .munis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+  .muni{
+    border:1px solid var(--line);border-radius:16px;padding:14px 16px;cursor:pointer;
+    background:linear-gradient(160deg,var(--ov5),rgba(244,239,230,.02));
+    display:flex;flex-direction:column;gap:6px;min-height:104px;justify-content:space-between;
+  }
+  .muni:hover{border-color:rgba(232,163,61,.55)}
+  .muni b{font-size:16px;font-weight:700;line-height:1.2}
+  .muni span{font-size:12.5px;color:var(--muted)}
+  .muni .isdel{font-size:11.5px;color:var(--honey2);font-weight:700;letter-spacing:.04em}
+
+  .cta{
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+    padding:18px 22px;border-radius:16px;cursor:pointer;
+    border:1px solid rgba(111,183,166,.35);
+    background:linear-gradient(120deg,rgba(111,183,166,.14),rgba(111,183,166,.04));
+  }
+  .cta b{font-size:17px}
+  .cta span{font-size:13.5px;color:var(--muted);display:block;margin-top:3px}
+  .arrow{font-size:24px;color:var(--green)}
+
+  /* ---------- detail screens ---------- */
+  .head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:18px}
+  .head h1{font-size:clamp(28px,3.1vw,48px);font-weight:800;letter-spacing:-.03em;line-height:1.02}
+  .head .meta{font-size:14.5px;color:var(--muted);margin-top:9px;max-width:740px;line-height:1.5}
+  .pill{
+    padding:10px 18px;border-radius:999px;font-size:13.5px;font-weight:700;letter-spacing:.06em;
+    text-transform:uppercase;border:1px solid var(--line2);color:var(--muted);white-space:nowrap;
+  }
+  .ind{display:grid;gap:5px;margin-top:4px}
+  .row{display:grid;grid-template-columns:1fr 70px;gap:16px;align-items:center;padding:5px 2px;border-bottom:1px dashed var(--ov6)}
+  .row .lb{font-size:14px;color:var(--t2);line-height:1.3}
+  .row .track{height:7px;border-radius:99px;background:var(--ov9);overflow:hidden;margin-top:6px}
+  .row .fill{height:100%;border-radius:99px}
+  .row .vl{font-size:16px;font-weight:800;text-align:right}
+
+  .highlights{display:grid;gap:12px}
+  .hl{display:flex;gap:14px;padding:14px 16px;border-radius:16px;background:var(--ov4);border:1px solid var(--line)}
+  .hl .ic{width:26px;flex:0 0 26px;font-size:16px;color:var(--honey)}
+  .hl p{font-size:14px;line-height:1.5;color:var(--t3)}
+
+  .municard{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:20px}
+  .stat{background:var(--ov4);border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+  .stat span{font-size:12.5px;color:var(--muted);display:block;text-transform:uppercase;letter-spacing:.1em}
+  .stat b{font-size:clamp(20px,2vw,30px);font-weight:800;letter-spacing:-.02em;display:block;margin-top:8px}
+
+  .pot{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+  .pot .box{border-radius:16px;padding:18px 20px;border:1px solid var(--line)}
+  .pot .good{background:linear-gradient(140deg,rgba(111,183,166,.13),transparent)}
+  .pot .bad{background:linear-gradient(140deg,rgba(217,105,79,.11),transparent)}
+  .pot h4{font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+  .pot p{font-size:15px;line-height:1.55}
+
+  .bars{display:grid;gap:9px;margin-top:8px}
+  .dbar{display:grid;grid-template-columns:1fr 66px;gap:14px;align-items:center}
+  .dbar .nm{font-size:15px;color:var(--t3)}
+  .dbar .t{height:9px;border-radius:99px;background:var(--ov9);overflow:hidden;margin-top:6px}
+  .dbar .f{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--honey),var(--honey2))}
+  .dbar .v{font-size:16px;font-weight:800;text-align:right}
+
+  .foot{margin-top:26px;font-size:12.5px;color:rgba(157,176,169,.75);line-height:1.5;border-top:1px solid var(--line);padding-top:14px}
+
+
+  /* ---------- theme toggle ---------- */
+  .tbtn{background:var(--ov4);border:1px solid var(--line2);color:var(--honey2);
+    width:36px;height:36px;border-radius:50%;font-size:15px;cursor:pointer;flex:0 0 auto;opacity:.9}
+  .tbtn:hover{opacity:1;border-color:var(--honey)}
+  .tbtn:active{transform:scale(.95)}
+
+  /* ---------- CTA grid ---------- */
+  .ctagrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .cta.sm{padding:14px 16px;gap:10px}
+  .cta.sm b{font-size:15px;line-height:1.2;display:block}
+  .cta.sm span{font-size:12px;margin-top:4px}
+  .cta.sm .arrow{font-size:19px}
+
+  /* ---------- mapa ---------- */
+  .mapbg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);height:142%;opacity:.17;pointer-events:none;z-index:0;overflow:hidden}
+  .mapbg svg{height:100%;width:auto;display:block}
+  .mapbg path{fill:none;stroke:var(--honey2);stroke-width:1.7}
+  .screen > *:not(.mapbg){position:relative;z-index:1}
+  #mapa{display:flex;flex-direction:column;min-height:0}
+  .mapwrap{display:grid;grid-template-columns:minmax(0,.9fr) minmax(320px,1.1fr);gap:26px;flex:1;min-height:0}
+  .mapcard{display:flex;align-items:center;justify-content:center;padding:6px 12px;min-height:0;overflow:hidden}
+  .mapsvg{width:100%;height:100%;max-height:100%;min-height:0}
+  .marea{cursor:pointer;transition:fill .25s}
+  .marea[data-tier="alto"]{fill:rgba(232,163,61,.62)}
+  .marea[data-tier="medio"]{fill:rgba(232,163,61,.34)}
+  .marea[data-tier="baixo"]{fill:rgba(232,163,61,.17)}
+  body.light .marea[data-tier="alto"]{fill:rgba(169,105,26,.72)}
+  body.light .marea[data-tier="medio"]{fill:rgba(169,105,26,.44)}
+  body.light .marea[data-tier="baixo"]{fill:rgba(169,105,26,.20)}
+  body.light .marea{stroke:rgba(18,32,28,.35)}
+  .lg{display:inline-block;width:14px;height:14px;border-radius:4px;margin-right:7px;vertical-align:-2px;border:1px solid var(--line2)}
+  .lg.alto{background:rgba(232,163,61,.62)} .lg.medio{background:rgba(232,163,61,.34)} .lg.baixo{background:rgba(232,163,61,.17)}
+  body.light .lg.alto{background:rgba(169,105,26,.62)} body.light .lg.medio{background:rgba(169,105,26,.44)} body.light .lg.baixo{background:rgba(169,105,26,.18)}
+  .marea:hover{fill:rgba(232,163,61,.42)!important}
+  .mlab{cursor:pointer}
+  .mlab text{font-size:30px;font-weight:800;fill:var(--ink);paint-order:stroke;stroke:var(--bg);stroke-width:3.4px;stroke-linejoin:round;letter-spacing:.2px}
+  .mlab circle{opacity:.85}
+  .donut{width:200px;height:200px;border-radius:50%;margin:18px auto 4px;position:relative;display:flex;align-items:center;justify-content:center}
+  .donut-hole{width:62%;height:62%;border-radius:50%;background:var(--panel);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:inset 0 0 0 1px var(--line)}
+  .donut-hole b{font-size:clamp(20px,2vw,28px);font-weight:800;letter-spacing:-.02em}
+  .donut-hole span{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .dlegend{display:grid;gap:9px;margin-top:16px;width:100%;text-align:left}
+  .dl-item{display:grid;grid-template-columns:14px 1fr auto;align-items:center;gap:10px;font-size:14px;color:var(--t2)}
+  .dl-item i{width:12px;height:12px;border-radius:4px;display:inline-block}
+  .dl-item b{font-weight:800;color:var(--ink);font-size:14.5px}
+
+  .mlist{display:grid;gap:8px;margin-top:16px}
+  .mrow{display:grid;grid-template-columns:1fr auto 22px;gap:14px;align-items:center;
+    padding:11px 14px;border-radius:14px;border:1px solid var(--line);background:var(--ov3);cursor:pointer}
+  .mrow:hover{border-color:rgba(232,163,61,.55);background:var(--ov5)}
+  .mrow b{font-size:15.5px}
+  .mrow em{font-style:normal;font-size:12.5px;color:var(--muted);display:block;margin-top:3px}
+  .mrow .iv{font-size:13px;font-weight:800;color:var(--honey2);letter-spacing:.03em}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;font-size:12.5px;color:var(--muted)}
+  .legend i{display:inline-block;width:14px;height:14px;border-radius:4px;margin-right:7px;vertical-align:-2px;border:1px solid var(--line2)}
+
+  /* ---------- município (compacto, 8 estatísticas) ---------- */
+  .municard8{grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+  #muni .head{margin-bottom:12px}
+  #muni .stat{padding:12px 14px}
+  #muni .stat span{font-size:11px}
+  #muni .stat b{font-size:clamp(16px,1.7vw,24px);margin-top:5px}
+  #muni .pot{gap:10px}
+  #muni .pot .box{padding:13px 15px}
+  #muni .pot h4{margin-bottom:5px}
+  #muni .pot p{font-size:13.3px;line-height:1.45}
+  #muni .card h2{font-size:16px}
+  #muni .highlights{gap:8px;margin-top:8px!important}
+  #muni .hl{padding:10px 13px}
+  #muni .hl p{font-size:12.8px;line-height:1.42}
+  #muni .foot{margin-top:12px;padding-top:8px}
+
+  #muni .head>div{min-width:0}
+  #muni .head .meta{display:flex;flex-wrap:wrap;gap:8px}
+  #muni .head .meta .pill{margin-right:0!important}
+  .two-emp{grid-template-columns:.85fr 1.15fr}
+  .mrow-emp{grid-template-columns:150px 1fr 70px 22px}
+  .vocgrid{grid-template-columns:repeat(3,1fr)}
+
+  /* ---------- celular (retrato estreito) ---------- */
+  @media (max-width:720px){
+    body{overflow-x:hidden}
+    .screen{padding:14px 16px 24px}
+    .bar{padding:10px 14px;gap:8px;min-height:56px;flex-wrap:nowrap}
+    .back{padding:9px 14px;font-size:14px}
+    .crumb{display:none}
+    .brandmini{display:none}
+    .head{flex-direction:column;align-items:flex-start;gap:10px;margin-bottom:14px}
+    .head h1{font-size:clamp(24px,7vw,34px)}
+    .head .meta{font-size:13.5px}
+    .pill{font-size:11.5px;padding:7px 12px}
+    .two,.two-emp,.mapwrap,.priogrid,.vocgrid,.municard,.municard8{grid-template-columns:1fr!important;gap:14px}
+    .munis{grid-template-columns:1fr}
+    .munis .muni[style*="span 2"]{grid-column:auto}
+    .ctagrid{grid-template-columns:1fr}
+    .kpis{grid-template-columns:1fr 1fr;gap:9px}
+    .card{padding:16px 16px}
+    .card h2{font-size:16px}
+    .score{flex-direction:column;align-items:flex-start;gap:12px}
+    .score .num{font-size:56px}
+    .score .txt{max-width:none;font-size:14px}
+    .dim{grid-template-columns:1fr 46px;gap:10px}
+    .dim .nm{font-size:14px}
+    .mrow,.mrow-emp{grid-template-columns:1fr auto!important;gap:10px;padding:10px 12px}
+    .mrow .iv{font-size:14px}
+    .bar{grid-template-columns:1fr 58px;gap:10px}
+    .bar .nm,.dbar .nm{font-size:14px}
+    .donut{width:132px!important;height:132px!important;margin:12px auto 2px!important}
+    .dlegend{margin-top:10px!important}
+    .mapcard,.mapsvg{min-height:0}
+    .mapsvg{max-height:56vh}
+    .pot p,.hl p,.box p{font-size:13.5px}
+    .stat b{font-size:19px}
+    #muni .head>div{width:100%;min-width:0}
+    #muni .head .meta{display:flex;flex-wrap:wrap;gap:8px}
+    #muni .head .meta .pill{margin-right:0!important}
+    .sebrae-logo{width:132px;height:72px;margin-top:18px}
+    #attract{padding:22px}
+    #attract h1{font-size:clamp(40px,12vw,64px)}
+    #attract .sub{font-size:15px}
+    #attract .touch{font-size:16px;padding:16px 26px}
+    .evento{font-size:11px;padding:8px 14px;letter-spacing:.06em}
+    .hint{font-size:10.5px}
+    .foot{font-size:11px}
+  }
+
+  /* ---------- empresas (compacto) ---------- */
+  #empresas .head{margin-bottom:12px}
+  #empresas .card{padding:16px 18px}
+  #empresas .donut{width:150px;height:150px;margin:10px auto 2px}
+  #empresas .dlegend{gap:6px;margin-top:12px}
+  #empresas .dl-item{font-size:13px}
+  #empresas .bars{gap:7px;margin-top:10px}
+  #empresas .dbar .nm{font-size:13.5px}
+  #empresas .dbar .t{height:8px;margin-top:5px}
+  #empresas .mlist{gap:5px;margin-top:10px}
+  #empresas .mrow{padding:7px 12px}
+  #empresas .mrow b{font-size:14px}
+  #empresas .foot{margin-top:10px;padding-top:8px}
+
+  /* ---------- prioridades ---------- */
+  #prior .head{margin-bottom:12px}
+  #prior .head h1{font-size:clamp(26px,2.5vw,40px)}
+  #prior .head .meta{font-size:13.5px;margin-top:6px}
+  #prior .pcard{padding:11px 14px}
+  #prior .loss{gap:5px}
+  #prior .card{padding:14px 16px}
+  #prior .foot{margin-top:10px;padding-top:8px;font-size:11px}
+  #prior .priogrid{gap:20px}
+  .priogrid{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:26px;align-items:start}
+  .pcard{display:grid;grid-template-columns:30px 1fr;gap:12px;border:1px solid var(--line);
+    border-radius:18px;padding:13px 16px;background:linear-gradient(160deg,var(--ov5),transparent)}
+  .pcard.destaque{border-color:rgba(217,105,79,.38);background:linear-gradient(160deg,rgba(217,105,79,.13),transparent)}
+  .pcard .pnum{font-size:25px;font-weight:800;line-height:1;color:var(--honey2);opacity:.9;padding-top:2px}
+  .pcard .num{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--honey2);font-weight:800}
+  .pcard h3{font-size:clamp(15px,1.18vw,19px);font-weight:800;letter-spacing:-.01em;margin:4px 0 6px;line-height:1.2}
+  .pcard p{font-size:13.2px;line-height:1.45;color:var(--t3)}
+  .pcard .passo{margin-top:6px;color:var(--t2)}
+  .pcard .foot{border:none;padding-top:8px;margin-top:6px}
+  .ptags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .ptag{font-size:10px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;
+    padding:4px 9px;border-radius:999px;border:1px solid var(--line2);color:var(--muted)}
+  .loss{display:grid;gap:7px}
+  .loss .l{display:grid;grid-template-columns:1fr 58px;gap:10px;align-items:center;font-size:13px}
+  .loss .ln{color:var(--t2)}
+  .loss .ln span{color:var(--muted);font-size:11.5px}
+  .loss .v small{font-size:9.5px;color:var(--muted);font-weight:600}
+  .loss .t{height:8px;border-radius:99px;background:var(--ov9);overflow:hidden;margin-top:5px}
+  .loss .f{height:100%;border-radius:99px}
+  .loss .v{font-size:14.5px;font-weight:800;text-align:right}
+
+  @media (max-width:1100px){
+    .grid-home{grid-template-columns:1fr;height:auto}
+    .munis{grid-template-columns:repeat(2,1fr)}
+    .municard,.pot,.two{grid-template-columns:1fr}
+    .municard.municard8{grid-template-columns:repeat(2,1fr)}
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    .dim{grid-template-columns:120px 1fr 52px}
+    .mapwrap,.priogrid{grid-template-columns:1fr}
+    .ctagrid{grid-template-columns:1fr}
+    .card-hero{flex:none;justify-content:flex-start}
+    .right-col .card[style*="flex:1"]{flex:none}
+    .munis .muni[style*="grid-column:span 2"]{grid-column:1/-1}
+    .mapwrap{flex:none}
+    .mapcard{min-height:52vh}
+    #attract .mapbg{opacity:.14;width:118%;height:auto}
+    #attract .mapbg svg{width:100%;height:auto;display:block}
+  }
+  /* totem/tablet em pé: retrato real */
+  @media (orientation:portrait){
+    .grid-home{grid-template-columns:1fr;height:auto}
+    .munis{grid-template-columns:repeat(2,1fr)}
+    .municard,.pot,.two{grid-template-columns:1fr}
+    .municard.municard8{grid-template-columns:repeat(2,1fr)}
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    .mapwrap,.priogrid{grid-template-columns:1fr}
+    .ctagrid{grid-template-columns:repeat(2,1fr)}
+    .card-hero{flex:none;justify-content:flex-start}
+    .right-col .card[style*="flex:1"]{flex:none}
+    .munis .muni[style*="grid-column:span 2"]{grid-column:1/-1}
+    .mapcard{min-height:56vh}
+    #attract .mapbg{opacity:.15;width:112%;height:auto;left:50%;top:50%}
+    #attract .mapbg svg{width:100%;height:auto;display:block}
+    #attract h1{font-size:clamp(56px,13vw,120px)}
+    .score{flex-direction:column;align-items:flex-start;gap:14px}
+    .score .txt{max-width:none}
+  }
+  /* notebooks de tela baixa (ex. 1366x768): aperta o essencial para caber sem rolar */
+  @media (max-height:930px) and (orientation:landscape){
+    .screen{padding:16px 32px 18px}
+    .head{margin-bottom:12px}
+    .head h1{font-size:clamp(24px,2.8vw,38px)}
+    .head .meta{font-size:13px;margin-top:6px}
+    .card{padding:18px 20px}
+    .card h2{font-size:16px}
+    .ind{gap:3px}
+    .row{padding:3px 2px}
+    .row .lb{font-size:13px}
+    .highlights{gap:8px}
+    .hl{padding:10px 13px}
+    .hl p{font-size:12.8px;line-height:1.4}
+    .municard{gap:10px;margin-top:12px}
+    .stat{padding:12px 14px}
+    .foot{margin-top:12px;padding-top:8px;font-size:11px}
+    .mapwrap{gap:16px}
+    .priogrid{gap:16px}
+    .pcard{padding:10px 13px}
+    .pcard h3{font-size:14px;margin:3px 0 4px}
+    .pcard p{font-size:12px;line-height:1.35}
+    #empresas .donut{width:118px;height:118px;margin:4px auto 0}
+    #empresas .dlegend{gap:4px;margin-top:8px}
+    #empresas .dl-item{font-size:12px}
+    #empresas .card{padding:12px 14px}
+    #empresas .bars{gap:5px;margin-top:8px}
+    #empresas .mlist{gap:4px;margin-top:8px}
+    #empresas .mrow{padding:5px 10px}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="bar">
+    <button class="back" onclick="back()">◀ Voltar</button>
+    <button class="back" onclick="attract()" style="background:transparent">⌂</button>
+    <div class="crumb" id="crumb"></div>
+    <div class="sp"></div>
+    <button class="tbtn" id="tbtn" onclick="toggleTheme()" title="Trocar entre fundo escuro e claro">☀</button>
+    <div class="brandmini"><span class="sebrae-logo-sm"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 4096 2214" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g><path style="opacity:0.997" fill="#1d66c3" d="M 1573.5,-0.5 C 2005.17,-0.5 2436.83,-0.5 2868.5,-0.5C 2852.76,79.2159 2836.76,158.883 2820.5,238.5C 2388.83,239.5 1957.17,239.833 1525.5,239.5C 1541.37,159.474 1557.37,79.4743 1573.5,-0.5 Z"/></g>
+<g><path style="opacity:0.997" fill="#1d66c3" d="M 1494.5,370.5 C 1926.17,370.5 2357.83,370.5 2789.5,370.5C 2774.01,450.27 2758.01,529.937 2741.5,609.5C 2309.83,610.5 1878.17,610.833 1446.5,610.5C 1462.37,530.473 1478.37,450.473 1494.5,370.5 Z"/></g>
+<g><path style="opacity:0.996" fill="#1d65c4" d="M 1417.5,752.5 C 1549.5,752.333 1681.5,752.5 1813.5,753C 1852.05,755.851 1887.39,767.851 1919.5,789C 1961.61,821.633 1978.45,864.466 1970,917.5C 1960.45,975.815 1930.62,1020.31 1880.5,1051C 1849.06,1069.04 1815.72,1082.37 1780.5,1091C 1815.99,1096.59 1848.32,1109.59 1877.5,1130C 1900.17,1148.49 1913.67,1172.33 1918,1201.5C 1924.07,1268.96 1903.74,1326.96 1857,1375.5C 1810.5,1421.58 1754.34,1447.08 1688.5,1452C 1665.9,1454.6 1643.24,1456.26 1620.5,1457C 1502.83,1457.5 1385.17,1457.67 1267.5,1457.5C 1316.99,1222.39 1366.99,987.389 1417.5,752.5 Z M 1583.5,878.5 C 1624.17,878.333 1664.83,878.5 1705.5,879C 1750.23,881.717 1770.4,905.217 1766,949.5C 1754.44,1008.9 1718.27,1037.07 1657.5,1034C 1621.83,1034.83 1586.16,1034.67 1550.5,1033.5C 1561.88,981.912 1572.88,930.245 1583.5,878.5 Z M 1523.5,1160.5 C 1562.17,1160.33 1600.83,1160.5 1639.5,1161C 1712.6,1165.8 1735.43,1202.3 1708,1270.5C 1692.62,1300.51 1668.12,1318.35 1634.5,1324C 1626.23,1325.56 1617.9,1326.56 1609.5,1327C 1569.17,1327.5 1528.83,1327.67 1488.5,1327.5C 1500.29,1271.86 1511.96,1216.19 1523.5,1160.5 Z"/></g>
+<g><path style="opacity:0.994" fill="#1d65c4" d="M -0.5,1306.5 C -0.5,1293.17 -0.5,1279.83 -0.5,1266.5C 1.48277,1253.63 3.48277,1240.63 5.5,1227.5C 71.1667,1227.5 136.833,1227.5 202.5,1227.5C 187.847,1289.73 212.18,1324.23 275.5,1331C 305.622,1334.23 334.956,1330.9 363.5,1321C 398.854,1305.51 417.854,1278.35 420.5,1239.5C 419.462,1221.25 410.796,1208.08 394.5,1200C 387.734,1196.74 380.734,1194.08 373.5,1192C 313.123,1176.16 252.79,1160.16 192.5,1144C 81.7436,1108.98 46.5769,1036.82 87,927.5C 102.811,889.039 126.978,856.873 159.5,831C 208.425,793.06 263.758,769.56 325.5,760.5C 377.312,753.008 429.312,751.508 481.5,756C 513.077,758.582 543.743,765.248 573.5,776C 645.753,805.303 675.919,858.803 664,936.5C 662.489,947.236 660.655,957.902 658.5,968.5C 592.5,968.5 526.5,968.5 460.5,968.5C 461.47,961.479 462.637,954.479 464,947.5C 468.872,907.702 451.705,884.202 412.5,877C 374.674,870.709 340.34,878.709 309.5,901C 287.893,919.144 278.393,942.31 281,970.5C 283.65,980.822 289.15,989.322 297.5,996C 304.225,1001.03 311.558,1005.03 319.5,1008C 372.369,1022.8 425.369,1037.13 478.5,1051C 511.348,1059.61 542.682,1071.95 572.5,1088C 609.732,1112.45 628.399,1147.12 628.5,1192C 623.829,1288.08 579.829,1359.41 496.5,1406C 432.814,1438.5 365.148,1455.5 293.5,1457C 244.755,1459.41 196.422,1456.07 148.5,1447C 111.836,1440.16 78.8356,1425.49 49.5,1403C 20.2538,1377.34 3.58714,1345.17 -0.5,1306.5 Z"/></g>
+<g><path style="opacity:0.996" fill="#1d65c4" d="M 798.5,754.5 C 977.167,754.5 1155.83,754.5 1334.5,754.5C 1325.32,799.534 1315.99,844.534 1306.5,889.5C 1193.17,889.5 1079.83,889.5 966.5,889.5C 955.911,938.112 945.578,986.779 935.5,1035.5C 1041.83,1035.5 1148.17,1035.5 1254.5,1035.5C 1244.96,1080.53 1235.29,1125.53 1225.5,1170.5C 1118.83,1170.17 1012.16,1170.5 905.5,1171.5C 894.893,1221.04 884.226,1270.54 873.5,1320C 989.501,1320.17 1105.5,1320.67 1221.5,1321.5C 1211.5,1366.5 1201.5,1411.5 1191.5,1456.5C 1010.17,1457.83 828.833,1457.83 647.5,1456.5C 698.089,1222.55 748.423,988.552 798.5,754.5 Z"/></g>
+<g><path style="opacity:0.995" fill="#1d65c4" d="M 2092.5,754.5 C 2224.17,754.333 2355.83,754.5 2487.5,755C 2523.1,753.989 2557.44,759.989 2590.5,773C 2631.99,793.889 2654.49,827.722 2658,874.5C 2660.59,1000.23 2600.42,1076.07 2477.5,1102C 2466.57,1104.39 2455.57,1106.39 2444.5,1108C 2443.09,1108.37 2442.09,1109.2 2441.5,1110.5C 2463.5,1111.52 2485.16,1114.68 2506.5,1120C 2544.24,1129.95 2564.74,1154.45 2568,1193.5C 2569.02,1203.47 2569.52,1213.47 2569.5,1223.5C 2567.25,1272.18 2564.75,1320.84 2562,1369.5C 2561.05,1397.87 2561.38,1426.2 2563,1454.5C 2706.75,1222.67 2850.25,990.668 2993.5,758.5C 3074.5,757.5 3155.5,757.167 3236.5,757.5C 3279.45,990.904 3322.78,1224.24 3366.5,1457.5C 3291.83,1457.83 3217.16,1457.5 3142.5,1456.5C 3135.92,1410.21 3129.59,1363.88 3123.5,1317.5C 3028.5,1317.17 2933.5,1317.5 2838.5,1318.5C 2812.37,1364.59 2786.37,1410.75 2760.5,1457C 2622.83,1457.5 2485.17,1457.67 2347.5,1457.5C 2347.3,1439.15 2347.8,1420.81 2349,1402.5C 2353.7,1349.18 2358.2,1295.85 2362.5,1242.5C 2363.07,1228.53 2359.91,1215.53 2353,1203.5C 2346.51,1195.67 2338.34,1190.5 2328.5,1188C 2319.93,1186.02 2311.27,1184.68 2302.5,1184C 2285.5,1183.83 2268.5,1183.67 2251.5,1183.5C 2234.11,1183.51 2216.95,1184.17 2200,1185.5C 2180.31,1276.14 2160.81,1366.81 2141.5,1457.5C 2074.83,1457.83 2008.16,1457.5 1941.5,1456.5C 1992.15,1222.56 2042.48,988.564 2092.5,754.5 Z M 2264.5,884.5 C 2302.85,884.124 2341.18,884.624 2379.5,886C 2393.88,886.729 2407.88,889.396 2421.5,894C 2444.51,903.826 2456.17,921.326 2456.5,946.5C 2451.76,1017.75 2413.76,1053.91 2342.5,1055C 2304.5,1055.5 2266.5,1055.67 2228.5,1055.5C 2240.5,998.5 2252.5,941.5 2264.5,884.5 Z M 3074.5,895.5 C 3075.5,895.5 3076.5,895.5 3077.5,895.5C 3086.7,992.846 3096.03,1090.18 3105.5,1187.5C 3041.5,1187.67 2977.5,1187.5 2913.5,1187C 2967.83,1090.18 3021.49,993.014 3074.5,895.5 Z"/></g>
+<g><path style="opacity:0.996" fill="#1d65c4" d="M 4095.5,754.5 C 4095.5,756.167 4095.5,757.833 4095.5,759.5C 4085.88,802.653 4076.55,845.986 4067.5,889.5C 3954.17,889.5 3840.83,889.5 3727.5,889.5C 3717.17,938.165 3706.83,986.832 3696.5,1035.5C 3802.83,1035.5 3909.17,1035.5 4015.5,1035.5C 4006.35,1080.27 3996.68,1124.94 3986.5,1169.5C 3879.84,1170.5 3773.17,1170.83 3666.5,1170.5C 3655.91,1220.45 3645.58,1270.45 3635.5,1320.5C 3751.17,1320.5 3866.83,1320.5 3982.5,1320.5C 3972.82,1366.09 3962.82,1411.59 3952.5,1457C 3771.17,1457.67 3589.83,1457.67 3408.5,1457C 3459.28,1222.95 3509.61,988.785 3559.5,754.5C 3738.17,754.5 3916.83,754.5 4095.5,754.5 Z"/></g>
+<g><path style="opacity:0.997" fill="#1d66c3" d="M 1235.5,1602.5 C 1667.17,1602.5 2098.83,1602.5 2530.5,1602.5C 2514.76,1682.22 2498.76,1761.88 2482.5,1841.5C 2050.83,1842.5 1619.17,1842.83 1187.5,1842.5C 1203.37,1762.47 1219.37,1682.47 1235.5,1602.5 Z"/></g>
+<g><path style="opacity:0.997" fill="#1d66c3" d="M 2403.5,2213.5 C 1971.83,2213.5 1540.17,2213.5 1108.5,2213.5C 1124.37,2133.47 1140.37,2053.47 1156.5,1973.5C 1588.17,1973.5 2019.83,1973.5 2451.5,1973.5C 2435.88,2053.58 2419.88,2133.58 2403.5,2213.5 Z"/></g>
+</svg>
+</span> Territórios Empreendedores · Inhamuns</div>
+  </div>
+  <div id="view"></div>
+
+</div>
+
+<script>
+/* ============================================================
+   DADOS — extraídos do Mapeamento e Diagnóstico (TE Inhamuns, jul/2026)
+   Fontes: IBGE Censo 2022, IPECE, RAIS, INEP, Mapa de Empresas,
+   INPI, ISDEL/Sebrae, pesquisas de campo (403 empreendedores,
+   462 moradores, 35 lideranças).
+   ============================================================ */
+const TERR = {
+  nome:"Inhamuns",
+  uf:"CE",
+  resumo:"Sete municípios no sudoeste do Ceará, na divisa com o Piauí. Semiárido, pecuária de caprinos e ovinos, mel de aroeira com Indicação Geográfica e o pioneirismo da energia solar em Tauá.",
+  populacao:"151.787",
+  area:"11.602 km²",
+  densidade:"15,7 hab/km²",
+  idh:"0,600",
+  urbano:"53%",
+  rural:"47%",
+  empresas:"6.360",
+  empregos:"17.249",
+  salario:"R$ 1.679",
+  salarioCE:"R$ 2.672",
+  pibParticipacao:"0,87%",
+  popParticipacao:"1,73%",
+  maturidade:33.8,
+  nivel:"Nível 1",
+  pesoCE:"O território tem 1,73% da população do Ceará e 0,87% do PIB do estado — metade do peso econômico do peso populacional."
+};
+
+const DIMS = [
+  {cod:"CF", nome:"Capital Financeiro", nota:2.4, peso:10, cor:"#D9694F",
+   sobre:"Disponibilidade de recursos para abrir, manter e crescer negócios: capital próprio, crédito, investidores e fomento.",
+   ind:[["Capital próprio dos empreendedores",30],["Investimento informal (família e amigos)",35],["Crédito bancário formal",48],["Subsídios públicos",40],["Poupança per capita",50],["Crédito concedido per capita",0],["Investimento anjo",0],["Venture capital",0],["Capital de instituições de fomento",25]],
+   destaques:["A poupança per capita fica entre R$ 2.800 e R$ 4.000, metade do caminho — mas o crédito concedido está na menor faixa avaliada (até R$ 7.400 por habitante).","O crédito bancário formal é a via mais acessível na percepção dos empreendedores, e ainda assim chega a só 48% de progresso.","Não há investidores-anjo nem fundos de venture capital atuando no território. O acesso a fomento (25%) para na orientação, sem captação efetiva."]},
+
+  {cod:"TA", nome:"Talentos", nota:4.6, peso:15, cor:"#E8A33D",
+   sobre:"Pessoas com formação técnica, experiência de gestão e preparo para empreender.",
+   ind:[["Escolaridade dos empreendedores",53],["Formação em administração e gestão",18],["Formação na área do próprio negócio",23],["Experiência prévia em gestão",23],["Experiência prévia no setor",25],["Experiência prévia como empreendedor",23],["Empreendedorismo na grade escolar",75],["Projetos de comportamento empreendedor",75],["Capacitação de professores no tema",75],["ICTIs atuando no território",25],["População com ensino superior",25],["Matrículas em educação profissional",100],["Matrículas em ensino superior",25]],
+   destaques:["O território forma para o trabalho, mas ainda não forma para gerir: a educação profissional chega a 100%, e a formação em gestão a 18%.","Aprende-se a administrar na prática: experiência prévia em gestão (23%), no setor (25%) e como empreendedor (23%) são todas baixas.","Educação empreendedora já está em cerca de quatro ou cinco dos sete municípios — base para a próxima geração."]},
+
+  {cod:"IS", nome:"Infraestrutura de Suporte", nota:3.5, peso:20, cor:"#6FB7A6",
+   sobre:"Serviços e equipamentos que sustentam o negócio: estradas, logística, conectividade, energia, bancos e ambientes de inovação.",
+   ind:[["Qualidade das rodovias",50],["Serviços de logística",38],["Conectividade (IBC)",50],["Custo da energia elétrica",75],["Cobertura e diversidade bancária",100],["Serviço de Inspeção Municipal (SIM)",0],["Sala do Empreendedor em funcionamento",75],["Incubadoras",0],["Aceleradoras",0],["Parques tecnológicos",0]],
+   destaques:["Cobertura bancária é o ponto mais forte: 100% de progresso, com diversidade de instituições nos sete municípios.","A energia elétrica também ajuda (75%): a tarifa convencional está entre R$ 0,700 e R$ 0,745 por kWh.","O que trava: nenhum município com SIM, nenhuma incubadora, aceleradora ou parque tecnológico — e logística em 38%."]},
+
+  {cod:"PP", nome:"Políticas Públicas", nota:3.2, peso:20, cor:"#C9A227",
+   sobre:"Leis, incentivos e agenda pública que criam condições para o pequeno negócio.",
+   ind:[["Tempo de abertura de empresas",0],["Agenda de desenvolvimento em implantação",0],["Lei de educação empreendedora",25],["Lei de Liberdade Econômica",25],["Marco legal de inovação",50],["Reserva de compras públicas para MPEs",0],["Adesão ao Cidade Empreendedora",100],["Identidade territorial e estudos iconográficos",0],["Indicação Geográfica reconhecida",25],["Marcas coletivas",0],["Órgão dedicado à inovação",50],["Agente de Desenvolvimento instituído",100]],
+   destaques:["Mais de 75% dos municípios aderiram ao Cidade Empreendedora e instituíram o Agente de Desenvolvimento — boa mobilização institucional.","Marcos de inovação e órgãos dedicados existem em apenas dois municípios; educação empreendedora e Liberdade Econômica, em um cada.","O tempo de abertura de empresas passa de 31 horas — a média do território é de 34 horas, ou 1 dia e 10 horas."]},
+
+  {cod:"CE", nome:"Cultura Empreendedora", nota:6.8, peso:10, cor:"#F6C766",
+   sobre:"Valores e atitudes da comunidade em relação a arriscar, criar e tocar o próprio negócio.",
+   ind:[["Valorização de quem vence pelo próprio esforço",63],["Incentivo a arriscar e abrir negócio",70],["Independência e persistência",68],["Estímulo a ideias novas",65],["Responsabilidade sobre a própria vida",68],["Empreendedorismo ligado ao desenvolvimento da região",73]],
+   destaques:["É a dimensão mais forte do território, com 6,8 de 10: existe disposição cultural para empreender.","73% ligam o desenvolvimento dos Inhamuns à iniciativa empreendedora.","O contraste: essa energia não encontra formação — 18% em gestão e 23% na área do negócio."]},
+
+  {cod:"RG", nome:"Redes e Governança", nota:1.8, peso:25, cor:"#8E7CC3",
+   sobre:"Quem articula o desenvolvimento e como: lideranças, consórcios, rotinas de monitoramento e comunicação.",
+   ind:[["Lideranças articuladas em governança",25],["Inclusão e representatividade do grupo",92],["Monitoramento e avaliação da agenda",0],["Mobilização de novos membros",0],["Revisão da agenda",0],["Captação de recursos para projetos",0],["Comunicação com a comunidade",0],["Parcerias institucionais",0],["Mediação de conflitos",0],["Consórcio intermunicipal multifinalitário",50],["Macrogovernança do território",0]],
+   destaques:["O grupo existe e é diverso: os sete municípios estão representados, com poder público, empresas, associações e movimentos sociais (92%).","Falta o que transforma grupo em governança: nenhum processo formal de monitoramento, comunicação, captação ou mediação de conflitos.","O consórcio intermunicipal (50%) é a estrutura pronta para apoiar projetos conjuntos."]}
+];
+
+const MUNIS = [
+  {nome:"Tauá", empresas:3500, saneamento:"26,1%", analfabetismo:"21,6%", pop:"61.227", pib:"R$ 15.260", idhm:"0,633", isdel:"0,289", urbano:"64%", area:"4.010,6 km²", dens:"15,3", abertura:"1 dia e 1h",
+   potencial:"Maior economia regional, IFCE, Sebrae Inhamuns e energia solar consolidam Tauá como polo de serviços, qualificação e inovação.",
+   desafio:"Os postos formais representam 12,6% da população — há espaço para ampliar empregos privados e levar oportunidades aos distritos.",
+   tags:["Polo regional","Energia solar","IFCE","Sebrae"]},
+  {nome:"Parambu", empresas:1003, saneamento:"30,1%", analfabetismo:"25,9%", pop:"31.445", pib:"R$ 11.114", idhm:"0,570", isdel:"0,197", urbano:"53%", area:"2.313,9 km²", dens:"13,6", abertura:"1 dia",
+   potencial:"BR-020, CE-277 e CE-279 e os nove distritos posicionam Parambu como polo logístico e comercial intrarregional.",
+   desafio:"População rural dispersa em território extenso exige atendimento descentralizado e melhor conexão entre distritos e a sede.",
+   tags:["BR-020","9 distritos","Polo comercial"]},
+  {nome:"Quiterianópolis", empresas:620, saneamento:"16,0%", analfabetismo:"25,5%", pop:"20.213", pib:"R$ 12.363", idhm:"0,594", isdel:"0,180", urbano:"36%", area:"1.022,9 km²", dens:"19,4", abertura:"1 dia e 4h",
+   potencial:"A CE-351, a Lei Municipal de Inovação e o EJA Empreendedor apoiam novos negócios e a integração com Crateús e o Piauí.",
+   desafio:"Com 64% da população no campo e saneamento ainda limitado, precisa ampliar infraestrutura e acesso a serviços.",
+   tags:["Lei de inovação","CE-351","EJA empreendedor"]},
+  {nome:"Aiuaba", empresas:404, saneamento:"15,9%", analfabetismo:"28,3%", pop:"14.076", pib:"R$ 12.012", idhm:"0,569", isdel:"0,169", urbano:"40%", area:"2.438,6 km²", dens:"5,8", abertura:"2 dias e 22h",
+   potencial:"A Estação Ecológica de Aiuaba abre oportunidades em turismo de natureza, educação ambiental e bioeconomia da Caatinga.",
+   desafio:"Território amplo e densidade de 5,8 hab/km² elevam o custo de acesso a serviços, conectividade e apoio aos negócios.",
+   tags:["Estação Ecológica","Apicultura","Turismo de natureza"]},
+  {nome:"Catarina", empresas:315, saneamento:"30,0%", analfabetismo:"26,3%", pop:"10.243", pib:"R$ 14.835", idhm:"0,618", isdel:"0,201", urbano:"57%", area:"488,2 km²", dens:"21,0", abertura:"1 dia e 23h",
+   potencial:"A maior pluviometria do território favorece a diversificação agrícola, a cadeia do mel e a agregação de valor no campo.",
+   desafio:"Analfabetismo de 26,3% limita a adoção de tecnologias e exige formação acessível para produtores e pequenos negócios.",
+   tags:["Maior pluviometria","Cadeia do mel","Saneamento"]},
+  {nome:"Arneiroz", empresas:277, saneamento:"17,4%", analfabetismo:"24,1%", pop:"7.429", pib:"R$ 11.856", idhm:"0,618", isdel:"0,189", urbano:"58%", area:"1.068,4 km²", dens:"7,0", abertura:"23h",
+   potencial:"A CE-277 e a presença expressiva de moradores no campo favorecem a pecuária familiar e serviços ligados à produção rural.",
+   desafio:"Baixa densidade e 678 postos formais mostram a necessidade de ampliar qualificação, formalização e geração de renda.",
+   tags:["CE-277","Pecuária familiar","678 postos formais"]},
+  {nome:"Antonina do Norte", empresas:241, saneamento:"47,0%", analfabetismo:"26,7%", pop:"7.245", pib:"R$ 13.967", idhm:"0,599", isdel:"0,214", urbano:"76%", area:"259,7 km²", dens:"27,9", abertura:"22h",
+   potencial:"A localização estratégica às margens da rodovia é um diferencial competitivo para o município.",
+   desafio:"Mercado local pequeno e dependência funcional de Assaré reforçam a necessidade de integração regional e diversificação produtiva.",
+   tags:["Mais rápido p/ abrir","Maior densidade","Rodovia"]}
+];
+
+
+// Fatos extraídos do Mapeamento TE Inhamuns (aba Vocações e Potencialidades / Números),
+// condensados a partir do texto original — sem adição de dado novo.
+const MUNI_FATOS = {
+  "Tauá": [
+    "Maior economia do território: PIB de R$ 934,3 milhões — maior que a soma dos outros seis municípios.",
+    "Usina Solar Tauá: projeto pioneiro de energia solar fotovoltaica em larga escala no Brasil.",
+    "Sede do campus do IFCE e do escritório regional do Sebrae Inhamuns."
+  ],
+  "Parambu": [
+    "Economia mais diversificada do território: serviços públicos R$ 128,7 mi, privados R$ 87,8 mi, agropecuária R$ 47,9 mi e a 2ª maior indústria da região, R$ 8,1 mi.",
+    "Único município do território com instituição de ensino superior presencial.",
+    "6º lugar no ranking de gestão pública ICGM/2024 — a melhor posição entre os sete."
+  ],
+  "Quiterianópolis": [
+    "Administração e serviços concentram a maior fatia do PIB: R$ 89,8 milhões de um total de R$ 249,9 milhões.",
+    "68,3% da população é rural — a maior proporção do território.",
+    "A nova CE-351 (2021) liga o município direto a Crateús e ao Piauí, sem passar por Tauá — cerca de 100 km mais curto."
+  ],
+  "Aiuaba": [
+    "Administração pública soma 44% do PIB; a agropecuária de sequeiro (caprinos, ovinos, apicultura) é a vocação produtiva.",
+    "Sala do Empreendedor com Selo Diamante do Sebrae, concedido em 2024.",
+    "Estação Ecológica de Aiuaba: 11.747 hectares, parte do Corredor Ecológico da Caatinga."
+  ],
+  "Catarina": [
+    "Administração e serviços somam 55% do PIB: R$ 84,7 milhões de um total de R$ 152,0 milhões.",
+    "Maior pluviometria do território (855 mm/ano) — abre espaço para diversificar a agricultura.",
+    "Maior cobertura de esgotamento sanitário do território: 1.841 habitantes atendidos."
+  ],
+  "Arneiroz": [
+    "Administração e serviços públicos concentram a maior fatia do PIB: R$ 33,8 milhões de um total de R$ 88,1 milhões.",
+    "Caprinocultura leiteira em estruturação, com produtores acessando o Programa de Aquisição de Alimentos (PAA Leite).",
+    "49,3% da população é rural — a maior proporção do território."
+  ],
+  "Antonina do Norte": [
+    "Serviços concentram entre 88% e 92% do Valor Adicionado Bruto — uma das maiores participações entre os pequenos municípios do Ceará.",
+    "Banda larga fixa cobre quase toda a população: 7.152 acessos para 7.507 habitantes.",
+    "Depende de Assaré, no Cariri, para justiça e cartório eleitoral."
+  ]
+};
+
+const VOZES = {
+  comunidade:{n:"462 moradores", titulo:"O que a comunidade aponta como desafio",
+    itens:[["Emprego",77.9],["Segurança",33.8],["Saúde",33.3],["Infraestrutura básica",24.2],["Educação",15.6],["Mobilidade e transporte",15.6],["Meio ambiente",15.2],["Habitação",13.0]]},
+  empreendedores:{n:"403 empreendedores", titulo:"O que os empreendedores apontam como desafio",
+    itens:[["Acesso a crédito",60.8],["Ambiente empreendedor",32.0],["Força de trabalho qualificada",26.6],["Dificuldade logística",18.9],["Infraestrutura precária",11.2],["Insegurança pública",8.9]]}
+};
+
+const EMPRESAS = {
+  total: 6360,
+  fonte: "Mapa de Empresas — Governo Federal/Redesim, citado na apresentação TE Inhamuns (jul/2026)",
+  porte: [
+    ["MEI", 57.83, "#E8A33D"],
+    ["ME — microempresa", 35.99, "#6FB7A6"],
+    ["EPP — pequeno porte", 3.36, "#8E7CC3"],
+    ["Médias e grandes", 2.81, "#D9694F"]
+  ],
+  setor: [
+    ["Comércio", 3422, 53.8, "#E8A33D"],
+    ["Serviços", 2247, 35.3, "#6FB7A6"],
+    ["Indústria", 397, 6.2, "#8E7CC3"],
+    ["Construção civil", 249, 3.9, "#C9A227"],
+    ["Agropecuária", 45, 0.7, "#D9694F"]
+  ]
+};
+
+const VOCACOES = [
+  ["Ovinocaprinocultura","Rebanho adaptado ao semiárido, identidade sertaneja e o FestBerro movimentando a cadeia."],
+  ["Mel de Aroeira","Indicação de Procedência concedida pelo INPI em 2025 — a vocação mais distintiva do território."],
+  ["Energia solar","Tauá recebeu a primeira usina solar comercial conectada ao SIN do país."],
+  ["Turismo de natureza","Estação Ecológica de Aiuaba, com 11,7 mil hectares de Caatinga protegida, e cultura viva sertaneja."],
+  ["Comércio e serviços","Mais de 6 mil empresas, 96% delas MEI, micro ou pequena."],
+  ["Agroindustrialização","Mel, carne, leite e recursos da Caatinga podem virar produto com marca e mercado."]
+];
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+const view = document.getElementById('view');
+const crumb = document.getElementById('crumb');
+let stack = [];
+
+const fmt = n => n.toLocaleString('pt-BR');
+const nota = n => n.toFixed(1).replace('.',',');
+
+function screen(id, html){
+  view.innerHTML = `<div class="screen" id="${id}">${html}</div>`;
+  requestAnimationFrame(()=>{
+    const el = view.firstElementChild;
+    el.classList.add('on');
+  });
+}
+
+/* tela de toque ou TV comum? muda a instrução do convite */
+const TOUCH = (navigator.maxTouchPoints || 0) > 0 || window.matchMedia('(pointer: coarse)').matches;
+
+/* ---------- ATTRACT ---------- */
+function attract(){
+  document.body.classList.remove('browsing');
+  stack = [];
+  view.innerHTML = `
+  <div class="screen on" id="attract" onclick="go('home')">
+    <div class="mapbg"><svg viewBox="-18 -18 796 1046">${MAPA_LINHAS}</svg></div>
+    <div class="kicker">Mapeamento e Diagnóstico do Território</div>
+    <h1>Inhamuns<span>.</span></h1>
+    <div class="sub">Sete municípios do sertão do Ceará, seis dimensões do ecossistema empreendedor e 60 indicadores — para tocar, comparar e descobrir.</div>
+    <div class="touch">${TOUCH ? 'Toque na tela para explorar' : 'Clique para explorar'} <span style="font-size:.8em">→</span></div>
+    <div class="evento">FestBerro 2026 · Parque de Exposições Pedro Alexandrino Feitosa · Tauá-CE</div>
+    <div class="sebrae-logo"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 4096 2214" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g><path style="opacity:0.997" fill="#1d66c3" d="M 1573.5,-0.5 C 2005.17,-0.5 2436.83,-0.5 2868.5,-0.5C 2852.76,79.2159 2836.76,158.883 2820.5,238.5C 2388.83,239.5 1957.17,239.833 1525.5,239.5C 1541.37,159.474 1557.37,79.4743 1573.5,-0.5 Z"/></g>
+<g><path style="opacity:0.997" fill="#1d66c3" d="M 1494.5,370.5 C 1926.17,370.5 2357.83,370.5 2789.5,370.5C 2774.01,450.27 2758.01,529.937 2741.5,609.5C 2309.83,610.5 1878.17,610.833 1446.5,610.5C 1462.37,530.473 1478.37,450.473 1494.5,370.5 Z"/></g>
+<g><path style="opacity:0.996" fill="#1d65c4" d="M 1417.5,752.5 C 1549.5,752.333 1681.5,752.5 1813.5,753C 1852.05,755.851 1887.39,767.851 1919.5,789C 1961.61,821.633 1978.45,864.466 1970,917.5C 1960.45,975.815 1930.62,1020.31 1880.5,1051C 1849.06,1069.04 1815.72,1082.37 1780.5,1091C 1815.99,1096.59 1848.32,1109.59 1877.5,1130C 1900.17,1148.49 1913.67,1172.33 1918,1201.5C 1924.07,1268.96 1903.74,1326.96 1857,1375.5C 1810.5,1421.58 1754.34,1447.08 1688.5,1452C 1665.9,1454.6 1643.24,1456.26 1620.5,1457C 1502.83,1457.5 1385.17,1457.67 1267.5,1457.5C 1316.99,1222.39 1366.99,987.389 1417.5,752.5 Z M 1583.5,878.5 C 1624.17,878.333 1664.83,878.5 1705.5,879C 1750.23,881.717 1770.4,905.217 1766,949.5C 1754.44,1008.9 1718.27,1037.07 1657.5,1034C 1621.83,1034.83 1586.16,1034.67 1550.5,1033.5C 1561.88,981.912 1572.88,930.245 1583.5,878.5 Z M 1523.5,1160.5 C 1562.17,1160.33 1600.83,1160.5 1639.5,1161C 1712.6,1165.8 1735.43,1202.3 1708,1270.5C 1692.62,1300.51 1668.12,1318.35 1634.5,1324C 1626.23,1325.56 1617.9,1326.56 1609.5,1327C 1569.17,1327.5 1528.83,1327.67 1488.5,1327.5C 1500.29,1271.86 1511.96,1216.19 1523.5,1160.5 Z"/></g>
+<g><path style="opacity:0.994" fill="#1d65c4" d="M -0.5,1306.5 C -0.5,1293.17 -0.5,1279.83 -0.5,1266.5C 1.48277,1253.63 3.48277,1240.63 5.5,1227.5C 71.1667,1227.5 136.833,1227.5 202.5,1227.5C 187.847,1289.73 212.18,1324.23 275.5,1331C 305.622,1334.23 334.956,1330.9 363.5,1321C 398.854,1305.51 417.854,1278.35 420.5,1239.5C 419.462,1221.25 410.796,1208.08 394.5,1200C 387.734,1196.74 380.734,1194.08 373.5,1192C 313.123,1176.16 252.79,1160.16 192.5,1144C 81.7436,1108.98 46.5769,1036.82 87,927.5C 102.811,889.039 126.978,856.873 159.5,831C 208.425,793.06 263.758,769.56 325.5,760.5C 377.312,753.008 429.312,751.508 481.5,756C 513.077,758.582 543.743,765.248 573.5,776C 645.753,805.303 675.919,858.803 664,936.5C 662.489,947.236 660.655,957.902 658.5,968.5C 592.5,968.5 526.5,968.5 460.5,968.5C 461.47,961.479 462.637,954.479 464,947.5C 468.872,907.702 451.705,884.202 412.5,877C 374.674,870.709 340.34,878.709 309.5,901C 287.893,919.144 278.393,942.31 281,970.5C 283.65,980.822 289.15,989.322 297.5,996C 304.225,1001.03 311.558,1005.03 319.5,1008C 372.369,1022.8 425.369,1037.13 478.5,1051C 511.348,1059.61 542.682,1071.95 572.5,1088C 609.732,1112.45 628.399,1147.12 628.5,1192C 623.829,1288.08 579.829,1359.41 496.5,1406C 432.814,1438.5 365.148,1455.5 293.5,1457C 244.755,1459.41 196.422,1456.07 148.5,1447C 111.836,1440.16 78.8356,1425.49 49.5,1403C 20.2538,1377.34 3.58714,1345.17 -0.5,1306.5 Z"/></g>
+<g><path style="opacity:0.996" fill="#1d65c4" d="M 798.5,754.5 C 977.167,754.5 1155.83,754.5 1334.5,754.5C 1325.32,799.534 1315.99,844.534 1306.5,889.5C 1193.17,889.5 1079.83,889.5 966.5,889.5C 955.911,938.112 945.578,986.779 935.5,1035.5C 1041.83,1035.5 1148.17,1035.5 1254.5,1035.5C 1244.96,1080.53 1235.29,1125.53 1225.5,1170.5C 1118.83,1170.17 1012.16,1170.5 905.5,1171.5C 894.893,1221.04 884.226,1270.54 873.5,1320C 989.501,1320.17 1105.5,1320.67 1221.5,1321.5C 1211.5,1366.5 1201.5,1411.5 1191.5,1456.5C 1010.17,1457.83 828.833,1457.83 647.5,1456.5C 698.089,1222.55 748.423,988.552 798.5,754.5 Z"/></g>
+<g><path style="opacity:0.995" fill="#1d65c4" d="M 2092.5,754.5 C 2224.17,754.333 2355.83,754.5 2487.5,755C 2523.1,753.989 2557.44,759.989 2590.5,773C 2631.99,793.889 2654.49,827.722 2658,874.5C 2660.59,1000.23 2600.42,1076.07 2477.5,1102C 2466.57,1104.39 2455.57,1106.39 2444.5,1108C 2443.09,1108.37 2442.09,1109.2 2441.5,1110.5C 2463.5,1111.52 2485.16,1114.68 2506.5,1120C 2544.24,1129.95 2564.74,1154.45 2568,1193.5C 2569.02,1203.47 2569.52,1213.47 2569.5,1223.5C 2567.25,1272.18 2564.75,1320.84 2562,1369.5C 2561.05,1397.87 2561.38,1426.2 2563,1454.5C 2706.75,1222.67 2850.25,990.668 2993.5,758.5C 3074.5,757.5 3155.5,757.167 3236.5,757.5C 3279.45,990.904 3322.78,1224.24 3366.5,1457.5C 3291.83,1457.83 3217.16,1457.5 3142.5,1456.5C 3135.92,1410.21 3129.59,1363.88 3123.5,1317.5C 3028.5,1317.17 2933.5,1317.5 2838.5,1318.5C 2812.37,1364.59 2786.37,1410.75 2760.5,1457C 2622.83,1457.5 2485.17,1457.67 2347.5,1457.5C 2347.3,1439.15 2347.8,1420.81 2349,1402.5C 2353.7,1349.18 2358.2,1295.85 2362.5,1242.5C 2363.07,1228.53 2359.91,1215.53 2353,1203.5C 2346.51,1195.67 2338.34,1190.5 2328.5,1188C 2319.93,1186.02 2311.27,1184.68 2302.5,1184C 2285.5,1183.83 2268.5,1183.67 2251.5,1183.5C 2234.11,1183.51 2216.95,1184.17 2200,1185.5C 2180.31,1276.14 2160.81,1366.81 2141.5,1457.5C 2074.83,1457.83 2008.16,1457.5 1941.5,1456.5C 1992.15,1222.56 2042.48,988.564 2092.5,754.5 Z M 2264.5,884.5 C 2302.85,884.124 2341.18,884.624 2379.5,886C 2393.88,886.729 2407.88,889.396 2421.5,894C 2444.51,903.826 2456.17,921.326 2456.5,946.5C 2451.76,1017.75 2413.76,1053.91 2342.5,1055C 2304.5,1055.5 2266.5,1055.67 2228.5,1055.5C 2240.5,998.5 2252.5,941.5 2264.5,884.5 Z M 3074.5,895.5 C 3075.5,895.5 3076.5,895.5 3077.5,895.5C 3086.7,992.846 3096.03,1090.18 3105.5,1187.5C 3041.5,1187.67 2977.5,1187.5 2913.5,1187C 2967.83,1090.18 3021.49,993.014 3074.5,895.5 Z"/></g>
+<g><path style="opacity:0.996" fill="#1d65c4" d="M 4095.5,754.5 C 4095.5,756.167 4095.5,757.833 4095.5,759.5C 4085.88,802.653 4076.55,845.986 4067.5,889.5C 3954.17,889.5 3840.83,889.5 3727.5,889.5C 3717.17,938.165 3706.83,986.832 3696.5,1035.5C 3802.83,1035.5 3909.17,1035.5 4015.5,1035.5C 4006.35,1080.27 3996.68,1124.94 3986.5,1169.5C 3879.84,1170.5 3773.17,1170.83 3666.5,1170.5C 3655.91,1220.45 3645.58,1270.45 3635.5,1320.5C 3751.17,1320.5 3866.83,1320.5 3982.5,1320.5C 3972.82,1366.09 3962.82,1411.59 3952.5,1457C 3771.17,1457.67 3589.83,1457.67 3408.5,1457C 3459.28,1222.95 3509.61,988.785 3559.5,754.5C 3738.17,754.5 3916.83,754.5 4095.5,754.5 Z"/></g>
+<g><path style="opacity:0.997" fill="#1d66c3" d="M 1235.5,1602.5 C 1667.17,1602.5 2098.83,1602.5 2530.5,1602.5C 2514.76,1682.22 2498.76,1761.88 2482.5,1841.5C 2050.83,1842.5 1619.17,1842.83 1187.5,1842.5C 1203.37,1762.47 1219.37,1682.47 1235.5,1602.5 Z"/></g>
+<g><path style="opacity:0.997" fill="#1d66c3" d="M 2403.5,2213.5 C 1971.83,2213.5 1540.17,2213.5 1108.5,2213.5C 1124.37,2133.47 1140.37,2053.47 1156.5,1973.5C 1588.17,1973.5 2019.83,1973.5 2451.5,1973.5C 2435.88,2053.58 2419.88,2133.58 2403.5,2213.5 Z"/></g>
+</svg>
+</div>
+    <div class="hint">Escritório Regional Sebrae Inhamuns · Execução técnica Lumiere</div>
+  </div>`;
+}
+
+/* ---------- HOME ---------- */
+function home(){
+  document.body.classList.add('browsing');
+  crumb.innerHTML = `<b>Território ${TERR.nome}</b> — visão geral`;
+  const dims = DIMS.slice().sort((a,b)=>b.nota-a.nota);
+  screen('home', `
+    <div class="grid-home">
+      <div style="display:flex;flex-direction:column;gap:22px;min-height:0">
+        <div class="card card-hero">
+          <div class="cap">Maturidade do ecossistema empreendedor</div>
+          <div class="score">
+            <div class="num">${nota(TERR.maturidade)}<small>/100</small></div>
+            <div class="txt">Nota consolidada das seis dimensões, ponderada por peso.<div class="badge">${TERR.nivel}</div></div>
+          </div>
+          <div class="kpis">
+            <div class="kpi"><b>${TERR.populacao}</b><span>habitantes (Censo 2022)</span></div>
+            <div class="kpi"><b>${TERR.empresas}</b><span>empresas formais · 96% pequenas</span></div>
+            <div class="kpi"><b>${TERR.idh}</b><span>IDH médio do território</span></div>
+            <div class="kpi"><b>${TERR.empregos}</b><span>postos formais · 11,4% da população</span></div>
+          </div>
+          <div class="foot" style="border:none;padding-top:16px">${TERR.pesoCE}</div>
+        </div>
+
+        <div class="card">
+          <h2>Os sete municípios</h2>
+          <div class="cap">Toque em um município para ver os números e o diagnóstico local</div>
+          <div class="munis">
+            ${MUNIS.map((m,i)=>`<div class="muni" ${i===0?'style="grid-column:span 2"':''} onclick="muni('${m.nome}')">
+              <div><b>${m.nome}</b><span style="display:block;margin-top:4px">${m.pop} hab · ${m.urbano} urbano</span></div>
+              <div class="isdel">ISDEL ${m.isdel.replace('.',',')}</div>
+            </div>`).join('')}
+          </div>
+        </div>
+      </div>
+
+      <div class="right-col">
+        <div class="card" style="flex:1">
+          <h2>As seis dimensões</h2>
+          <div class="cap">Nota de 0 a 10 · toque para abrir os 60 indicadores</div>
+          <div class="dims">
+            ${dims.map(d=>`<div class="dim" onclick="dim('${d.cod}')">
+              <div class="nm">${d.nome}</div>
+              <div class="track"><div class="fill" style="width:${d.nota*10}%;background:${d.cor}"></div></div>
+              <div class="vl" style="color:${d.cor}">${nota(d.nota)}<small>/10</small></div>
+            </div>`).join('')}
+          </div>
+        </div>
+
+        <div class="ctagrid">
+          <div class="cta sm" onclick="empresas()" style="grid-column:1/-1;border-color:rgba(232,163,61,.55);background:linear-gradient(120deg,rgba(232,163,61,.2),rgba(232,163,61,.05))">
+            <div><b>Empresas do território</b><span>6.360 empresas formais · por porte, setor e município</span></div>
+            <div class="arrow" style="color:var(--honey2)">→</div>
+          </div>
+          <div class="cta sm" onclick="prior()" style="border-color:rgba(232,163,61,.55);background:linear-gradient(120deg,rgba(232,163,61,.18),rgba(232,163,61,.04))">
+            <div><b>O que fazer primeiro</b><span>As prioridades do território</span></div>
+            <div class="arrow" style="color:var(--honey2)">→</div>
+          </div>
+          <div class="cta sm" onclick="mapa()">
+            <div><b>Mapa do território</b><span>Onde fica cada município</span></div>
+            <div class="arrow">→</div>
+          </div>
+          <div class="cta sm" onclick="vozes()">
+            <div><b>O que as pessoas dizem</b><span>865 respostas de campo</span></div>
+            <div class="arrow">→</div>
+          </div>
+          <div class="cta sm" onclick="vocacoes()">
+            <div><b>Vocações</b><span>Mel, ovinos, solar, turismo</span></div>
+            <div class="arrow">→</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `);
+  push('home');
+}
+
+/* ---------- DIMENSÃO ---------- */
+function dim(cod){
+  const d = DIMS.find(x=>x.cod===cod);
+  crumb.innerHTML = `<b>Território ${TERR.nome}</b> — ${d.nome}`;
+  screen('dim', `
+    <div class="head">
+      <div>
+        <h1>${d.nome}</h1>
+        <div class="meta">${d.sobre}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:clamp(40px,4.6vw,72px);font-weight:800;letter-spacing:-.04em;color:${d.cor};line-height:1">${nota(d.nota)}<span style="font-size:.34em;color:var(--muted)">/10</span></div>
+        <div class="pill" style="margin-top:10px">peso ${d.peso}% no resultado</div>
+      </div>
+    </div>
+    <div class="two" style="align-items:start">
+      <div class="card">
+        <h2>Indicadores</h2>
+        <div class="cap">Progresso em relação à referência da metodologia</div>
+        <div class="ind">
+          ${d.ind.map(([n,v])=>`<div class="row">
+            <div><div class="lb">${n}</div><div class="track"><div class="fill" style="width:${v}%;background:linear-gradient(90deg,${d.cor},${d.cor}aa)"></div></div></div>
+            <div class="vl">${v}%</div>
+          </div>`).join('')}
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <h2>O que os números dizem</h2>
+          <div class="highlights" style="margin-top:14px">
+            ${d.destaques.map(t=>`<div class="hl"><div class="ic">◆</div><p>${t}</p></div>`).join('')}
+          </div>
+          <div class="foot">Metodologia Territórios Empreendedores: cada indicador tem uma referência de progresso; a nota da dimensão vai de 0 a 10.</div>
+        </div>
+      </div>
+    </div>
+  `);
+  push('dim:'+cod);
+}
+
+/* ---------- MUNICÍPIO ---------- */
+function muni(nome){
+  const m = MUNIS.find(x=>x.nome===nome);
+  crumb.innerHTML = `<b>Território ${TERR.nome}</b> — ${m.nome}`;
+  screen('muni', `
+    <div class="head">
+      <div>
+        <h1>${m.nome}</h1>
+        <div class="meta">${m.tags.map(t=>`<span class="pill" style="margin-right:8px;font-size:12px;padding:7px 13px">${t}</span>`).join('')}</div>
+      </div>
+      <div class="pill">${m.dens} hab/km² · ${m.area}</div>
+    </div>
+    <div class="municard municard8">
+      <div class="stat"><span>População</span><b>${m.pop}</b></div>
+      <div class="stat"><span>PIB per capita</span><b>${m.pib}</b></div>
+      <div class="stat"><span>IDHM</span><b>${m.idhm.replace('.',',')}</b></div>
+      <div class="stat"><span>ISDEL Sebrae</span><b>${m.isdel.replace('.',',')}</b></div>
+      <div class="stat"><span>População urbana</span><b>${m.urbano}</b></div>
+      <div class="stat"><span>Abertura de empresa</span><b>${m.abertura}</b></div>
+      <div class="stat"><span>Saneamento básico</span><b>${m.saneamento}</b></div>
+      <div class="stat"><span>Analfabetismo (15+)</span><b>${m.analfabetismo}</b></div>
+    </div>
+    <div class="two" style="margin-top:14px;align-items:start">
+      <div class="pot" style="margin-top:0">
+        <div class="box good"><h4>Potencial</h4><p>${m.potencial}</p></div>
+        <div class="box bad"><h4>Desafio</h4><p>${m.desafio}</p></div>
+      </div>
+      <div class="card" style="background:linear-gradient(150deg,rgba(232,163,61,.10),var(--bg2))">
+        <h2>Fatos que marcam o município</h2>
+        <div class="cap">Mapeamento TE Inhamuns — vocações e potencialidades por município</div>
+        <div class="highlights" style="margin-top:12px">
+          ${(MUNI_FATOS[m.nome]||[]).map(f=>`<div class="hl"><div class="ic">◆</div><p>${f}</p></div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="foot">Fontes: IBGE (Censo 2022, PIB municipal), IPECE, ISDEL/Sebrae, Mapa de Empresas — Governo Federal / Redesim, Anuário do Ceará, Sebrae/CE. Saneamento e analfabetismo: IBGE Censo 2022.</div>
+  `);
+  push('muni:'+nome);
+}
+
+/* ---------- EMPRESAS ---------- */
+function donutGradient(porte){
+  let acc = 0;
+  const parts = porte.map(([n,v,cor])=>{
+    const start = acc, end = acc + v; acc = end;
+    return `${cor} ${start}% ${end}%`;
+  });
+  return `conic-gradient(${parts.join(',')})`;
+}
+function empresas(){
+  crumb.innerHTML = `<b>Território ${TERR.nome}</b> — empresas`;
+  const maxSetor = Math.max(...EMPRESAS.setor.map(s=>s[1]));
+  const porMuni = MUNIS.slice().sort((a,b)=>b.empresas-a.empresas);
+  const maxMuni = porMuni[0].empresas;
+  screen('empresas', `
+    <div class="head">
+      <div><h1>Empresas do território</h1>
+      <div class="meta">O número que o Sebrae acompanha de perto: quantas empresas existem, de que porte e em que setor — base para medir formalização e geração de renda.</div></div>
+      <div class="pill">${fmt(EMPRESAS.total)} empresas formais</div>
+    </div>
+    <div class="two two-emp" style="align-items:start">
+      <div class="card" style="display:flex;flex-direction:column;align-items:center;text-align:center">
+        <div class="cap" style="align-self:flex-start">Por porte</div>
+        <div class="donut" style="background:${donutGradient(EMPRESAS.porte)}">
+          <div class="donut-hole"><b>${fmt(EMPRESAS.total)}</b><span>empresas</span></div>
+        </div>
+        <div class="dlegend">
+          ${EMPRESAS.porte.map(([n,v,cor])=>`<div class="dl-item"><i style="background:${cor}"></i>${n}<b>${v.toFixed(2).replace('.',',')}%</b></div>`).join('')}
+        </div>
+      </div>
+      <div class="card">
+        <h2>Por setor</h2>
+        <div class="cap">Número de empresas por atividade econômica</div>
+        <div class="bars" style="margin-top:14px">
+          ${EMPRESAS.setor.map(([n,v,pct,cor])=>`<div class="dbar">
+            <div><div class="nm">${n}</div><div class="t"><div class="f" style="width:${(v/maxSetor*100).toFixed(1)}%;background:linear-gradient(90deg,${cor},${cor}bb)"></div></div></div>
+            <div class="v">${fmt(v)}<small style="display:block;font-size:11px;color:var(--muted);font-weight:600">${pct.toFixed(1).replace('.',',')}%</small></div>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h2>Por município</h2>
+      <div class="cap">Tauá concentra 55% das empresas do território · toque para abrir a ficha</div>
+      <div class="mlist" style="margin-top:14px">
+        ${porMuni.map(m=>`<div class="mrow mrow-emp" onclick="muni('${m.nome}')">
+          <b>${m.nome}</b>
+          <div class="t" style="height:9px;border-radius:99px;background:var(--ov9);overflow:hidden"><div style="height:100%;border-radius:99px;background:linear-gradient(90deg,var(--honey),var(--honey2));width:${(m.empresas/maxMuni*100).toFixed(1)}%"></div></div>
+          <div class="iv">${fmt(m.empresas)}</div>
+          <div class="arrow" style="font-size:18px">→</div>
+        </div>`).join('')}
+      </div>
+    </div>
+    <div class="foot">Fonte: ${EMPRESAS.fonte}. Cerca de 97% das empresas do território são MEI, microempresa ou pequeno porte — base econômica pequena, pulverizada entre os sete municípios.</div>
+  `);
+  push('empresas');
+}
+
+/* ---------- VOZES ---------- */
+function vozes(){
+  crumb.innerHTML = `<b>Território ${TERR.nome}</b> — o que as pessoas dizem`;
+  const bloco = (o,cor)=>`
+    <div class="card">
+      <h2>${o.titulo}</h2>
+      <div class="cap">${o.n} · questão de múltipla escolha</div>
+      <div class="bars" style="margin-top:16px">
+        ${o.itens.map(([n,v])=>`<div class="dbar">
+          <div><div class="nm">${n}</div><div class="t"><div class="f" style="width:${v}%;background:linear-gradient(90deg,${cor},${cor}bb)"></div></div></div>
+          <div class="v">${v.toFixed(1).replace('.',',')}%</div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  screen('vozes', `
+    <div class="head"><div><h1>O que as pessoas dizem</h1>
+    <div class="meta">Duas pesquisas de campo, aplicadas nos sete municípios: 403 empreendedores locais e 462 moradores. É a percepção de quem vive o território.</div></div></div>
+    <div class="two">${bloco(VOZES.comunidade,'#6FB7A6')}${bloco(VOZES.empreendedores,'#E8A33D')}</div>
+    <div class="foot">Destaque: 77,9% dos moradores apontam o emprego como principal desafio; 60,8% dos empreendedores apontam o acesso a crédito. Os dois lados apontam para a mesma raiz — geração de renda.</div>
+  `);
+  push('vozes');
+}
+
+/* ---------- VOCAÇÕES ---------- */
+function vocacoes(){
+  crumb.innerHTML = `<b>Território ${TERR.nome}</b> — vocações e potencialidades`;
+  screen('voc', `
+    <div class="head"><div><h1>Vocações e potencialidades</h1>
+    <div class="meta">O que o território já sabe fazer e o que pode virar negócio com mais valor agregado.</div></div></div>
+    <div class="municard vocgrid">
+      ${VOCACOES.map(([t,d])=>`<div class="stat" style="min-height:150px"><span>${t}</span><p style="font-size:14.5px;line-height:1.55;margin-top:12px;color:var(--t3)">${d}</p></div>`).join('')}
+    </div>
+    <div class="two" style="margin-top:16px">
+      <div class="card" style="background:linear-gradient(140deg,rgba(111,183,166,.12),var(--bg2))">
+        <h2>O que já é força</h2>
+        <div class="cap">Ativos para apoiar a decisão de investir no território</div>
+        <div class="bars" style="margin-top:14px">
+          <div class="dbar"><div><div class="nm">Cultura empreendedora</div><div class="t"><div class="f" style="width:68%;background:linear-gradient(90deg,#6FB7A6,#9ED6C8)"></div></div></div><div class="v">6,8/10</div></div>
+          <div class="dbar"><div><div class="nm">Matrículas em educação profissional</div><div class="t"><div class="f" style="width:100%;background:linear-gradient(90deg,#6FB7A6,#9ED6C8)"></div></div></div><div class="v">100%</div></div>
+          <div class="dbar"><div><div class="nm">Cobertura bancária nos 7 municípios</div><div class="t"><div class="f" style="width:100%;background:linear-gradient(90deg,#6FB7A6,#9ED6C8)"></div></div></div><div class="v">100%</div></div>
+          <div class="dbar"><div><div class="nm">Adesão ao Cidade Empreendedor</div><div class="t"><div class="f" style="width:100%;background:linear-gradient(90deg,#6FB7A6,#9ED6C8)"></div></div></div><div class="v">100%</div></div>
+        </div>
+      </div>
+      <div class="card" style="background:linear-gradient(140deg,rgba(217,105,79,.10),var(--bg2))">
+        <h2>Onde está o gargalo</h2>
+        <div class="cap">O que limita transformar vocação em renda</div>
+        <div class="bars" style="margin-top:14px">
+          <div class="dbar"><div><div class="nm">Redes e governança</div><div class="t"><div class="f" style="width:18%;background:linear-gradient(90deg,#D9694F,#E89A84)"></div></div></div><div class="v">1,8/10</div></div>
+          <div class="dbar"><div><div class="nm">Capital financeiro</div><div class="t"><div class="f" style="width:24%;background:linear-gradient(90deg,#D9694F,#E89A84)"></div></div></div><div class="v">2,4/10</div></div>
+          <div class="dbar"><div><div class="nm">Crédito concedido por habitante</div><div class="t"><div class="f" style="width:2%;background:linear-gradient(90deg,#D9694F,#E89A84)"></div></div></div><div class="v">0%</div></div>
+          <div class="dbar"><div><div class="nm">Municípios com Serviço de Inspeção</div><div class="t"><div class="f" style="width:2%;background:linear-gradient(90deg,#D9694F,#E89A84)"></div></div></div><div class="v">0%</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="foot">Fontes: INPI (Revista da Propriedade Industrial, 11/03/2025), Censo Agropecuário IBGE, Anuário do Ceará, Sebrae/CE. Indicadores: Mapeamento e Diagnóstico TE Inhamuns, jul/2026.</div>
+  `);
+  push('voc');
+}
+
+
+/* ---------- MAPA ---------- */
+const MAPA_LINHAS = `<path class="marea" data-n="Quiterianópolis" data-tier="baixo" d="M198,230 193,228 183,217 185,214 181,209 173,206 167,196 166,189 163,183 155,181 151,178 145,167 108,219 104,220 94,225 87,231 80,228 64,243 56,244 52,248 45,254 30,250 18,253 0,250 0,261 3,275 0,291 3,307 10,325 11,332 8,343 14,350 20,354 20,366 23,374 24,391 21,397 15,402 14,412 4,424 1,434 2,441 5,443 16,442 25,448 30,469 35,481 70,481 73,473 81,470 87,472 96,470 102,473 109,471 110,465 114,466 119,459 116,455 116,449 120,446 134,439 132,436 128,436 119,430 119,424 116,419 118,412 115,405 110,401 113,396 124,391 127,387 133,387 135,376 132,369 138,368 139,361 145,350 149,349 161,352 166,347 160,342 156,332 154,328 154,323 160,321 162,315 161,311 181,301 189,310 204,307 210,300 219,300 233,301 234,297 230,293 233,289 230,281 234,266 229,255 230,245 232,240 238,234 246,232 246,224 239,226 230,234 218,230 210,231 208,225 201,223 198,230Z" fill="rgba(232,163,61,.14)" stroke="var(--line2)" stroke-width="2.5" onclick="muni('Quiterianópolis')"/>
+            <path class="marea" data-n="Parambu" data-tier="baixo" d="M341,622 337,626 331,627 324,631 321,637 313,635 305,638 296,635 291,636 287,640 271,643 258,646 244,641 237,647 232,649 227,653 222,643 219,641 211,644 208,648 202,639 216,622 215,616 217,609 224,605 232,608 239,603 252,599 258,594 264,592 272,583 277,580 280,574 280,570 282,557 285,548 256,518 271,508 281,466 284,463 289,449 292,445 290,432 296,429 300,421 292,414 295,410 290,404 282,397 280,402 274,404 263,403 255,405 253,410 248,412 242,412 238,415 234,409 225,409 217,405 207,406 202,403 192,406 180,412 175,414 168,412 166,414 157,415 150,417 132,436 134,439 120,446 116,449 116,455 119,459 114,466 110,465 109,471 102,473 96,470 87,472 81,470 73,473 70,481 35,481 41,494 43,504 38,519 39,531 42,548 39,562 56,582 61,589 67,605 83,617 86,623 88,642 87,649 79,665 75,668 71,677 77,701 77,712 78,722 77,730 81,750 80,758 83,766 89,773 105,787 111,794 115,802 117,818 151,818 159,819 160,825 172,827 177,823 203,820 211,813 212,808 217,799 217,791 222,788 224,783 235,781 241,784 251,781 258,775 283,771 288,769 298,770 305,769 309,766 312,755 312,746 316,743 328,740 350,732 351,728 364,718 366,715 365,708 367,702 382,688 386,691 389,686 394,683 341,622Z" fill="rgba(232,163,61,.14)" stroke="var(--line2)" stroke-width="2.5" onclick="muni('Parambu')"/>
+            <path class="marea" data-n="Tauá" data-tier="alto" d="M644,478 640,472 642,468 661,461 676,449 679,444 679,435 690,433 692,426 699,422 707,407 712,401 717,403 720,398 726,394 729,385 726,376 727,370 724,362 718,364 702,349 698,348 707,337 702,331 689,338 679,339 673,341 664,335 661,335 655,328 647,326 642,323 650,317 655,317 660,310 666,300 665,295 661,291 653,293 648,287 640,286 638,289 632,289 626,283 624,279 626,273 619,259 611,258 610,253 613,245 610,238 613,230 610,230 611,219 610,215 604,211 600,213 599,214 586,214 582,207 583,204 572,198 570,189 566,189 565,182 573,174 578,166 576,159 579,150 575,143 576,137 572,131 564,131 563,126 577,121 585,114 592,113 596,107 601,96 606,82 598,76 594,75 596,63 589,64 578,61 583,48 578,44 577,26 574,21 569,18 573,14 571,9 575,0 570,3 565,14 555,25 554,29 548,31 547,37 543,38 541,45 543,48 539,63 541,68 542,77 539,79 540,93 536,102 531,107 525,102 518,99 502,99 499,104 498,111 489,111 490,117 477,124 460,132 460,138 466,140 461,146 456,160 462,171 459,177 466,183 470,190 469,195 472,200 463,207 460,213 452,212 452,217 445,225 430,236 428,239 419,244 414,239 406,239 397,234 386,239 378,236 370,235 364,237 363,242 358,247 354,255 354,258 346,262 345,267 340,272 337,281 332,282 326,286 309,294 294,291 293,295 286,297 281,294 275,292 261,286 257,286 252,291 243,297 239,302 233,301 219,300 210,300 204,307 189,310 181,301 161,311 162,315 160,321 154,323 154,328 156,332 160,342 166,347 161,352 149,349 145,350 139,361 138,368 132,369 135,376 133,387 127,387 124,391 113,396 110,401 115,405 118,412 116,419 119,424 119,430 128,436 132,436 150,417 157,415 166,414 168,412 175,414 180,412 192,406 202,403 207,406 217,405 225,409 234,409 238,415 242,412 248,412 253,410 255,405 263,403 274,404 280,402 282,397 290,404 295,410 292,414 300,421 296,429 290,432 292,445 289,449 284,463 281,466 271,508 256,518 285,548 282,557 280,570 280,574 277,580 272,583 264,592 258,594 252,599 239,603 232,608 224,605 217,609 215,616 216,622 202,639 208,648 211,644 219,641 222,643 227,653 232,649 237,647 244,641 258,646 271,643 287,640 291,636 296,635 305,638 313,635 321,637 324,631 331,627 337,626 341,622 411,550 419,548 421,540 425,537 432,530 434,525 438,524 441,512 449,508 455,501 462,499 469,505 472,502 483,507 492,506 504,499 507,491 516,486 520,487 529,484 535,485 541,489 548,488 555,484 558,487 566,483 568,485 583,477 586,482 590,479 602,475 604,479 615,481 621,478 625,479 632,478 637,480 644,478Z" fill="rgba(232,163,61,.55)" stroke="var(--line2)" stroke-width="2.5" onclick="muni('Tauá')"/>
+            <path class="marea" data-n="Arneiroz" data-tier="baixo" d="M644,478 637,480 632,478 625,479 621,478 615,481 604,479 602,475 590,479 586,482 583,477 568,485 566,483 558,487 555,484 548,488 541,489 535,485 529,484 520,487 516,486 507,491 504,499 492,506 483,507 472,502 469,505 462,499 455,501 449,508 441,512 438,524 434,525 432,530 425,537 421,540 419,548 411,550 341,622 394,683 415,676 422,669 430,673 439,672 446,669 451,677 461,673 468,666 476,669 489,658 498,655 506,656 507,651 514,655 517,651 525,648 539,647 558,659 559,654 567,651 567,642 573,633 572,628 574,616 581,615 581,602 583,599 596,600 600,589 598,583 602,573 600,567 604,562 614,556 624,560 632,555 638,549 650,543 656,542 665,543 671,539 670,534 676,525 686,518 686,514 682,508 687,500 685,491 688,487 690,476 680,472 675,465 670,466 666,473 652,480 644,478Z" fill="rgba(232,163,61,.14)" stroke="var(--line2)" stroke-width="2.5" onclick="muni('Arneiroz')"/>
+            <path class="marea" data-n="Catarina" data-tier="medio" d="M558,659 564,660 570,656 574,659 582,652 583,647 588,645 587,640 595,635 606,635 614,636 620,632 629,635 632,640 645,635 651,635 655,638 667,642 670,652 681,656 686,660 692,655 696,657 707,652 713,653 718,649 718,640 726,629 730,619 726,609 732,605 736,605 739,589 744,590 747,576 752,574 759,560 760,555 757,550 753,548 754,543 751,539 754,532 752,527 755,517 752,510 747,507 743,502 734,495 730,501 723,499 715,487 707,494 704,491 699,491 688,487 685,491 687,500 682,508 686,514 686,518 676,525 670,534 671,539 665,543 656,542 650,543 638,549 632,555 624,560 614,556 604,562 600,567 602,573 598,583 600,589 596,600 583,599 581,602 581,615 574,616 572,628 573,633 567,642 567,651 559,654 558,659Z" fill="rgba(232,163,61,.30)" stroke="var(--line2)" stroke-width="2.5" onclick="muni('Catarina')"/>
+            <path class="marea" data-n="Aiuaba" data-tier="baixo" d="M365,956 369,958 377,959 378,953 391,956 400,954 404,945 408,945 412,953 412,958 418,959 423,950 435,951 440,944 445,944 451,938 472,937 478,936 490,926 495,927 500,938 502,948 514,943 519,948 521,954 524,954 525,960 517,966 520,968 530,965 538,965 541,957 549,956 560,948 563,951 570,946 566,940 568,934 577,928 583,923 586,917 598,907 602,900 606,898 608,892 612,893 615,888 612,877 604,867 598,869 588,867 583,874 577,868 581,859 589,846 588,836 578,835 576,832 578,825 593,816 588,811 597,806 595,792 591,788 594,782 593,777 587,776 587,771 579,763 575,750 579,746 578,735 583,731 581,727 583,715 589,709 593,711 596,708 592,703 573,692 570,685 563,682 558,667 558,659 539,647 525,648 517,651 514,655 507,651 506,656 498,655 489,658 476,669 468,666 461,673 451,677 446,669 439,672 430,673 422,669 415,676 394,683 389,686 386,691 382,688 367,702 365,708 366,715 364,718 351,728 350,732 328,740 316,743 312,746 312,755 309,766 305,769 298,770 288,769 283,771 258,775 251,781 241,784 235,781 224,783 222,788 217,791 217,799 212,808 211,813 203,820 177,823 172,827 160,825 159,819 151,818 117,818 120,823 127,830 120,854 121,856 130,866 135,869 166,871 175,871 179,874 187,885 196,891 208,896 237,900 254,903 265,906 293,908 296,916 303,921 305,925 309,942 316,947 318,958 323,962 333,962 342,955 352,951 365,956Z" fill="rgba(232,163,61,.14)" stroke="var(--line2)" stroke-width="2.5" onclick="muni('Aiuaba')"/>
+            <path class="marea" data-n="Antonina do Norte" data-tier="medio" d="M728,885 724,871 712,871 707,872 698,872 699,866 684,875 681,877 674,878 667,884 662,884 656,894 635,882 634,877 630,874 632,867 625,867 624,872 612,877 615,888 612,893 608,892 606,898 602,900 598,907 586,917 583,923 577,928 568,934 566,940 570,946 563,951 560,948 549,956 541,957 538,965 530,965 520,968 517,966 516,974 556,985 563,992 580,983 577,978 579,970 587,965 598,963 605,959 614,956 620,963 624,964 631,957 636,957 651,945 662,939 676,929 684,923 696,912 697,909 715,896 725,891 728,885Z" fill="rgba(232,163,61,.30)" stroke="var(--line2)" stroke-width="2.5" onclick="muni('Antonina do Norte')"/>`;
+const MAPA = `<path class="marea" data-n="Quiterianópolis" data-tier="baixo" d="M198,230 193,228 183,217 185,214 181,209 173,206 167,196 166,189 163,183 155,181 151,178 145,167 108,219 104,220 94,225 87,231 80,228 64,243 56,244 52,248 45,254 30,250 18,253 0,250 0,261 3,275 0,291 3,307 10,325 11,332 8,343 14,350 20,354 20,366 23,374 24,391 21,397 15,402 14,412 4,424 1,434 2,441 5,443 16,442 25,448 30,469 35,481 70,481 73,473 81,470 87,472 96,470 102,473 109,471 110,465 114,466 119,459 116,455 116,449 120,446 134,439 132,436 128,436 119,430 119,424 116,419 118,412 115,405 110,401 113,396 124,391 127,387 133,387 135,376 132,369 138,368 139,361 145,350 149,349 161,352 166,347 160,342 156,332 154,328 154,323 160,321 162,315 161,311 181,301 189,310 204,307 210,300 219,300 233,301 234,297 230,293 233,289 230,281 234,266 229,255 230,245 232,240 238,234 246,232 246,224 239,226 230,234 218,230 210,231 208,225 201,223 198,230Z" fill="rgba(232,163,61,.14)" stroke="var(--line2)" stroke-width="2.5" onclick="muni('Quiterianópolis')"/>
+            <path class="marea" data-n="Parambu" data-tier="baixo" d="M341,622 337,626 331,627 324,631 321,637 313,635 305,638 296,635 291,636 287,640 271,643 258,646 244,641 237,647 232,649 227,653 222,643 219,641 211,644 208,648 202,639 216,622 215,616 217,609 224,605 232,608 239,603 252,599 258,594 264,592 272,583 277,580 280,574 280,570 282,557 285,548 256,518 271,508 281,466 284,463 289,449 292,445 290,432 296,429 300,421 292,414 295,410 290,404 282,397 280,402 274,404 263,403 255,405 253,410 248,412 242,412 238,415 234,409 225,409 217,405 207,406 202,403 192,406 180,412 175,414 168,412 166,414 157,415 150,417 132,436 134,439 120,446 116,449 116,455 119,459 114,466 110,465 109,471 102,473 96,470 87,472 81,470 73,473 70,481 35,481 41,494 43,504 38,519 39,531 42,548 39,562 56,582 61,589 67,605 83,617 86,623 88,642 87,649 79,665 75,668 71,677 77,701 77,712 78,722 77,730 81,750 80,758 83,766 89,773 105,787 111,794 115,802 117,818 151,818 159,819 160,825 172,827 177,823 203,820 211,813 212,808 217,799 217,791 222,788 224,783 235,781 241,784 251,781 258,775 283,771 288,769 298,770 305,769 309,766 312,755 312,746 316,743 328,740 350,732 351,728 364,718 366,715 365,708 367,702 382,688 386,691 389,686 394,683 341,622Z" fill="rgba(232,163,61,.14)" stroke="var(--line2)" stroke-width="2.5" onclick="muni('Parambu')"/>
+            <path class="marea" data-n="Tauá" data-tier="alto" d="M644,478 640,472 642,468 661,461 676,449 679,444 679,435 690,433 692,426 699,422 707,407 712,401 717,403 720,398 726,394 729,385 726,376 727,370 724,362 718,364 702,349 698,348 707,337 702,331 689,338 679,339 673,341 664,335 661,335 655,328 647,326 642,323 650,317 655,317 660,310 666,300 665,295 661,291 653,293 648,287 640,286 638,289 632,289 626,283 624,279 626,273 619,259 611,258 610,253 613,245 610,238 613,230 610,230 611,219 610,215 604,211 600,213 599,214 586,214 582,207 583,204 572,198 570,189 566,189 565,182 573,174 578,166 576,159 579,150 575,143 576,137 572,131 564,131 563,126 577,121 585,114 592,113 596,107 601,96 606,82 598,76 594,75 596,63 589,64 578,61 583,48 578,44 577,26 574,21 569,18 573,14 571,9 575,0 570,3 565,14 555,25 554,29 548,31 547,37 543,38 541,45 543,48 539,63 541,68 542,77 539,79 540,93 536,102 531,107 525,102 518,99 502,99 499,104 498,111 489,111 490,117 477,124 460,132 460,138 466,140 461,146 456,160 462,171 459,177 466,183 470,190 469,195 472,200 463,207 460,213 452,212 452,217 445,225 430,236 428,239 419,244 414,239 406,239 397,234 386,239 378,236 370,235 364,237 363,242 358,247 354,255 354,258 346,262 345,267 340,272 337,281 332,282 326,286 309,294 294,291 293,295 286,297 281,294 275,292 261,286 257,286 252,291 243,297 239,302 233,301 219,300 210,300 204,307 189,310 181,301 161,311 162,315 160,321 154,323 154,328 156,332 160,342 166,347 161,352 149,349 145,350 139,361 138,368 132,369 135,376 133,387 127,387 124,391 113,396 110,401 115,405 118,412 116,419 119,424 119,430 128,436 132,436 150,417 157,415 166,414 168,412 175,414 180,412 192,406 202,403 207,406 217,405 225,409 234,409 238,415 242,412 248,412 253,410 255,405 263,403 274,404 280,402 282,397 290,404 295,410 292,414 300,421 296,429 290,432 292,445 289,449 284,463 281,466 271,508 256,518 285,548 282,557 280,570 280,574 277,580 272,583 264,592 258,594 252,599 239,603 232,608 224,605 217,609 215,616 216,622 202,639 208,648 211,644 219,641 222,643 227,653 232,649 237,647 244,641 258,646 271,643 287,640 291,636 296,635 305,638 313,635 321,637 324,631 331,627 337,626 341,622 411,550 419,548 421,540 425,537 432,530 434,525 438,524 441,512 449,508 455,501 462,499 469,505 472,502 483,507 492,506 504,499 507,491 516,486 520,487 529,484 535,485 541,489 548,488 555,484 558,487 566,483 568,485 583,477 586,482 590,479 602,475 604,479 615,481 621,478 625,479 632,478 637,480 644,478Z" fill="rgba(232,163,61,.55)" stroke="var(--line2)" stroke-width="2.5" onclick="muni('Tauá')"/>
+            <path class="marea" data-n="Arneiroz" data-tier="baixo" d="M644,478 637,480 632,478 625,479 621,478 615,481 604,479 602,475 590,479 586,482 583,477 568,485 566,483 558,487 555,484 548,488 541,489 535,485 529,484 520,487 516,486 507,491 504,499 492,506 483,507 472,502 469,505 462,499 455,501 449,508 441,512 438,524 434,525 432,530 425,537 421,540 419,548 411,550 341,622 394,683 415,676 422,669 430,673 439,672 446,669 451,677 461,673 468,666 476,669 489,658 498,655 506,656 507,651 514,655 517,651 525,648 539,647 558,659 559,654 567,651 567,642 573,633 572,628 574,616 581,615 581,602 583,599 596,600 600,589 598,583 602,573 600,567 604,562 614,556 624,560 632,555 638,549 650,543 656,542 665,543 671,539 670,534 676,525 686,518 686,514 682,508 687,500 685,491 688,487 690,476 680,472 675,465 670,466 666,473 652,480 644,478Z" fill="rgba(232,163,61,.14)" stroke="var(--line2)" stroke-width="2.5" onclick="muni('Arneiroz')"/>
+            <path class="marea" data-n="Catarina" data-tier="medio" d="M558,659 564,660 570,656 574,659 582,652 583,647 588,645 587,640 595,635 606,635 614,636 620,632 629,635 632,640 645,635 651,635 655,638 667,642 670,652 681,656 686,660 692,655 696,657 707,652 713,653 718,649 718,640 726,629 730,619 726,609 732,605 736,605 739,589 744,590 747,576 752,574 759,560 760,555 757,550 753,548 754,543 751,539 754,532 752,527 755,517 752,510 747,507 743,502 734,495 730,501 723,499 715,487 707,494 704,491 699,491 688,487 685,491 687,500 682,508 686,514 686,518 676,525 670,534 671,539 665,543 656,542 650,543 638,549 632,555 624,560 614,556 604,562 600,567 602,573 598,583 600,589 596,600 583,599 581,602 581,615 574,616 572,628 573,633 567,642 567,651 559,654 558,659Z" fill="rgba(232,163,61,.30)" stroke="var(--line2)" stroke-width="2.5" onclick="muni('Catarina')"/>
+            <path class="marea" data-n="Aiuaba" data-tier="baixo" d="M365,956 369,958 377,959 378,953 391,956 400,954 404,945 408,945 412,953 412,958 418,959 423,950 435,951 440,944 445,944 451,938 472,937 478,936 490,926 495,927 500,938 502,948 514,943 519,948 521,954 524,954 525,960 517,966 520,968 530,965 538,965 541,957 549,956 560,948 563,951 570,946 566,940 568,934 577,928 583,923 586,917 598,907 602,900 606,898 608,892 612,893 615,888 612,877 604,867 598,869 588,867 583,874 577,868 581,859 589,846 588,836 578,835 576,832 578,825 593,816 588,811 597,806 595,792 591,788 594,782 593,777 587,776 587,771 579,763 575,750 579,746 578,735 583,731 581,727 583,715 589,709 593,711 596,708 592,703 573,692 570,685 563,682 558,667 558,659 539,647 525,648 517,651 514,655 507,651 506,656 498,655 489,658 476,669 468,666 461,673 451,677 446,669 439,672 430,673 422,669 415,676 394,683 389,686 386,691 382,688 367,702 365,708 366,715 364,718 351,728 350,732 328,740 316,743 312,746 312,755 309,766 305,769 298,770 288,769 283,771 258,775 251,781 241,784 235,781 224,783 222,788 217,791 217,799 212,808 211,813 203,820 177,823 172,827 160,825 159,819 151,818 117,818 120,823 127,830 120,854 121,856 130,866 135,869 166,871 175,871 179,874 187,885 196,891 208,896 237,900 254,903 265,906 293,908 296,916 303,921 305,925 309,942 316,947 318,958 323,962 333,962 342,955 352,951 365,956Z" fill="rgba(232,163,61,.14)" stroke="var(--line2)" stroke-width="2.5" onclick="muni('Aiuaba')"/>
+            <path class="marea" data-n="Antonina do Norte" data-tier="medio" d="M728,885 724,871 712,871 707,872 698,872 699,866 684,875 681,877 674,878 667,884 662,884 656,894 635,882 634,877 630,874 632,867 625,867 624,872 612,877 615,888 612,893 608,892 606,898 602,900 598,907 586,917 583,923 577,928 568,934 566,940 570,946 563,951 560,948 549,956 541,957 538,965 530,965 520,968 517,966 516,974 556,985 563,992 580,983 577,978 579,970 587,965 598,963 605,959 614,956 620,963 624,964 631,957 636,957 651,945 662,939 676,929 684,923 696,912 697,909 715,896 725,891 728,885Z" fill="rgba(232,163,61,.30)" stroke="var(--line2)" stroke-width="2.5" onclick="muni('Antonina do Norte')"/>
+            <circle cx="440.1" cy="366.7" r="26" fill="none" stroke="var(--honey2)" stroke-width="2" opacity=".55"/>
+            <g class="mlab" onclick="muni('Aiuaba')"><circle cx="413.1" cy="821.0" r="4" fill="var(--honey2)"/><text x="413.1" y="807.0" text-anchor="middle">Aiuaba</text></g>
+            <g class="mlab" onclick="muni('Antonina do Norte')"><circle cx="627.4" cy="924.0" r="4" fill="var(--honey2)"/><text x="621.4" y="900" text-anchor="end"><tspan x="621.4">Antonina</tspan><tspan x="621.4" dy="19">do Norte</tspan></text></g>
+            <g class="mlab" onclick="muni('Arneiroz')"><circle cx="510.2" cy="572.4" r="4" fill="var(--honey2)"/><text x="510.2" y="558.4" text-anchor="middle">Arneiroz</text></g>
+            <g class="mlab" onclick="muni('Catarina')"><circle cx="676.2" cy="581.5" r="4" fill="var(--honey2)"/><text x="676.2" y="567.5" text-anchor="middle">Catarina</text></g>
+            <g class="mlab" onclick="muni('Parambu')"><circle cx="190.7" cy="616.3" r="4" fill="var(--honey2)"/><text x="190.7" y="602.3" text-anchor="middle">Parambu</text></g>
+            <g class="mlab" onclick="muni('Quiterianópolis')"><circle cx="100.6" cy="322.5" r="4" fill="var(--honey2)"/><text x="116.6" y="316.5" text-anchor="start">Quiterianópolis</text></g>
+            <g class="mlab" onclick="muni('Tauá')"><circle cx="440.1" cy="366.7" r="4" fill="var(--honey2)"/><text x="440.1" y="350.7" text-anchor="middle">Tauá</text></g>`;
+
+function mapa(){
+  crumb.innerHTML = `<b>Território ${TERR.nome}</b> — mapa`;
+  const lista = MUNIS.slice().sort((a,b)=>parseFloat(b.pop.replace('.',''))-parseFloat(a.pop.replace('.','')));
+  screen('mapa', `
+    <div class="head">
+      <div><h1>Onde fica cada município</h1>
+      <div class="meta">Sete municípios no sudoeste do Ceará, na divisa com o Piauí. Toque no mapa ou na lista para abrir a ficha do município.</div></div>
+      <div class="pill">${TERR.area} · 7 municípios</div>
+    </div>
+    <div class="mapwrap">
+      <div class="card mapcard">
+        <svg class="mapsvg" viewBox="-18 -18 796 1046" preserveAspectRatio="xMidYMid meet">
+            ${MAPA}
+        </svg>
+      </div>
+      <div>
+        <div class="card">
+          <h2>Os sete municípios</h2>
+          <div class="cap">População e ISDEL — índice Sebrae de desenvolvimento local</div>
+          <div class="mlist">
+            ${lista.map(m=>`<div class="mrow" onclick="muni('${m.nome}')">
+              <div><b>${m.nome}</b><em>${m.pop} hab · ${m.urbano} urbano</em></div>
+              <div class="iv">ISDEL ${m.isdel.replace('.',',')}</div>
+              <div class="arrow" style="font-size:18px">→</div>
+            </div>`).join('')}
+          </div>
+          <div class="legend">
+            <span><i class="lg alto"></i>maior · 0,289</span>
+            <span><i class="lg medio"></i>meio · 0,201 a 0,214</span>
+            <span><i class="lg baixo"></i>menor · 0,169 a 0,197</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `);
+  push('mapa');
+}
+
+/* ---------- PRIORIDADES ---------- */
+const PERDAS = DIMS.map(d=>({...d, perdido: d.peso*(10-d.nota)/10})).sort((a,b)=>b.perdido-a.perdido);
+const MAXP = PERDAS[0].perdido;
+
+function prior(){
+  crumb.innerHTML = `<b>Território ${TERR.nome}</b> — o que fazer primeiro`;
+  screen('prior', `
+    <div class="head">
+      <div><h1>O que fazer primeiro</h1>
+      <div class="meta">As seis dimensões não pesam igual no resultado. Abaixo, onde estão os 66 pontos que faltam para chegar a 100 — e o primeiro passo de cada frente.</div></div>
+      <div class="pill">${nota(TERR.maturidade)}/100 · ${TERR.nivel}</div>
+    </div>
+    <div class="priogrid">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card" style="padding:16px 18px">
+          <h2 style="font-size:17px">De onde vêm os 66 pontos que faltam</h2>
+          <div class="cap">impacto em pontos = peso (%) × (10 − nota) ÷ 10</div>
+          <div class="loss" style="margin-top:12px">
+            ${PERDAS.map(d=>`<div class="l">
+              <div><div class="ln">${d.nome} <span>· peso ${d.peso}% · nota ${nota(d.nota)}/10</span></div>
+                <div class="t"><div class="f" style="width:${Math.round(d.perdido/MAXP*100)}%;background:linear-gradient(90deg,${d.cor},${d.cor}99)"></div></div></div>
+              <div class="v" style="color:${d.cor}">${nota(d.perdido)}<small> pts</small></div>
+            </div>`).join('')}
+          </div>
+          <div class="foot">A soma dá 66,0; a nota consolidada de 33,8 fecha com o arredondamento das notas de cada dimensão.</div>
+        </div>
+        <div class="card" style="padding:16px 18px">
+          <h2 style="font-size:17px">O que já está pronto para alavancar</h2>
+          <div class="cap">Não é preciso criar do zero</div>
+          <div class="highlights" style="margin-top:10px">
+            <div class="hl"><div class="ic">◆</div><p><b>Cultura empreendedora 6,8/10</b> — a dimensão mais forte.</p></div>
+            <div class="hl"><div class="ic">◆</div><p><b>Cidade Empreendedor em 100%</b> dos municípios, com Agente de Desenvolvimento.</p></div>
+            <div class="hl"><div class="ic">◆</div><p><b>Cobertura bancária em 100%</b>; Sala do Empreendedor em 75%.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="pcard destaque">
+          <div class="pnum">1</div>
+          <div>
+            <div class="num">maior peso, pior nota</div>
+            <h3>Uma governança que se reúne, monitora e presta contas</h3>
+            <p>Redes e governança valem <b>25% do resultado</b> e têm a pior nota: <b>1,8/10</b> — são <b>20,5 dos 66 pontos</b> que faltam. O grupo existe e é representativo (92%); falta rotina: monitorar, comunicar, revisar metas, captar recurso.</p>
+            <p class="passo"><b>Primeiro passo:</b> agenda territorial com metas por município, um responsável por monitoramento e um relatório anual público, apoiados no consórcio intermunicipal.</p>
+            <div class="ptags"><span class="ptag">Sebrae Inhamuns</span><span class="ptag">consórcio</span><span class="ptag">7 prefeituras</span></div>
+          </div>
+        </div>
+
+        <div class="pcard">
+          <div class="pnum">2</div>
+          <div>
+            <div class="num">a dor que o empreendedor sente</div>
+            <h3>Crédito que chega ao balcão</h3>
+            <p>Capital financeiro tem nota <b>2,4/10</b> e é o desafio nº 1 para <b>60,8%</b> dos empreendedores. O crédito concedido por habitante (até R$ 7.400) está na menor faixa avaliada.</p>
+            <p class="passo"><b>Primeiro passo:</b> transformar as Salas do Empreendedor em posto de orientação de crédito e garantia (FAMPE, BNB, cooperativas), com acompanhamento de proposta.</p>
+            <div class="ptags"><span class="ptag">Salas do Empreendedor</span><span class="ptag">Sebrae</span><span class="ptag">bancos e cooperativas</span></div>
+          </div>
+        </div>
+
+        <div class="pcard">
+          <div class="pnum">3</div>
+          <div>
+            <div class="num">da vocação ao produto com selo</div>
+            <h3>Agroindustrialização com inspeção e marca</h3>
+            <p>O mel de aroeira tem <b>Indicação de Procedência</b> (INPI, 2025) e o território é <b>referência estadual e nacional</b> em caprinos e ovinos — mas <b>nenhum dos sete municípios</b> tem Serviço de Inspeção Municipal. Sem o SIM, o produto fica restrito ao comércio local.</p>
+            <p class="passo"><b>Primeiro passo:</b> SIM consorciado, uma agroindústria-piloto por cadeia (mel e carne) e marca coletiva do território.</p>
+            <div class="ptags"><span class="ptag">consórcio · SIM</span><span class="ptag">agroindústria</span><span class="ptag">INPI · IG</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="foot">Leitura do time a partir do Mapeamento e Diagnóstico TE Inhamuns (jul/2026): notas e pesos das seis dimensões e a síntese de desafios, vocações e pontos de atenção do próprio estudo.</div>
+  `);
+  push('prior');
+}
+
+/* ---------- TEMA ---------- */
+function toggleTheme(){
+  const light = document.body.classList.toggle('light');
+  const b = document.getElementById('tbtn');
+  if(b) b.textContent = light ? '☾' : '☀';
+  try{ localStorage.setItem('inhamuns-tema', light ? 'claro' : 'escuro'); }catch(e){}
+}
+(function(){
+  let t=null; try{ t = localStorage.getItem('inhamuns-tema'); }catch(e){}
+  if(t==='claro'){ document.body.classList.add('light'); }
+})();
+
+/* ---------- NAVEGAÇÃO ---------- */
+function push(id){ if(stack[stack.length-1] !== id) stack.push(id); }
+function go(where){
+  if(where==='home'){ stack=[]; home(); }
+}
+function back(){
+  stack.pop();
+  const prev = stack[stack.length-1];
+  if(!prev){ attract(); return; }
+  const [kind,arg] = prev.split(':');
+  if(kind==='home') home();
+  else if(kind==='dim') dim(arg);
+  else if(kind==='muni') muni(arg);
+  else if(kind==='vozes') vozes();
+  else if(kind==='voc') vocacoes();
+  else if(kind==='mapa') mapa();
+  else if(kind==='prior') prior();
+  else if(kind==='empresas') empresas();
+}
+
+/* volta para a tela de atração se ninguém mexer */
+let idle;
+function resetIdle(){
+  clearTimeout(idle);
+  idle = setTimeout(()=>{ if(document.body.classList.contains('browsing')) attract(); }, 75000);
+}
+['click','touchstart','keydown','mousemove'].forEach(e=>document.addEventListener(e,resetIdle));
+
+/* teclado: útil no notebook da feira */
+document.addEventListener('keydown', e=>{
+  /* TV comum com teclado/controle: entrar a partir da tela de atração */
+  if(!document.body.classList.contains('browsing') && (e.key==='Enter'||e.key===' '||e.key==='ArrowRight'||e.key==='ArrowDown')){ e.preventDefault(); home(); return; }
+  if(e.key==='Escape'){ document.body.classList.contains('browsing') ? back() : null; }
+  if(e.key==='Home'){ attract(); }
+  if(e.key==='p'||e.key==='P'){ if(document.body.classList.contains('browsing')) prior(); }
+  if(e.key==='m'||e.key==='M'){ if(document.body.classList.contains('browsing')) mapa(); }
+  if(e.key==='e'||e.key==='E'){ if(document.body.classList.contains('browsing')) empresas(); }
+});
+
+attract();
+resetIdle();
+</script>
+</body>
+</html>
